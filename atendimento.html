@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Fale com a Coordenação · Eventos MVV</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!--
+  FALE COM A COORDENAÇÃO — página pública ligada à Central de Atendimento.
+  - Sem FIREBASE_CONFIG: modo demonstração (o pedido aparece na Central aberta no mesmo navegador).
+  - Com FIREBASE_CONFIG: use o MESMO projeto da Central (as regras estão no topo do central-atendimento.html).
+  - Abra com #auto no final do endereço para ver uma conversa de exemplo rodando sozinha.
+-->
+<style>
+:root{--vinho:#7a1d2e;--vinho-esc:#5a1220;--vinho-claro:#f7eaed;--bg:#f4efef;--txt:#241a1c;--muted:#7d7073;--borda:#e9e0e2}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 Inter,system-ui,sans-serif;display:flex;justify-content:center}
+.app{width:100%;max-width:520px;height:100dvh;display:flex;flex-direction:column;background:#fbf8f8;box-shadow:0 0 40px rgba(90,18,32,.08)}
+header{background:var(--vinho);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--vinho);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+header b{display:block}
+header small{opacity:.85;font-size:12px}
+.fechar-chat{margin-left:auto;background:none;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer;display:none}
+.embutido .fechar-chat{display:block}
+.embutido body{background:#fbf8f8}.embutido .app{max-width:none;box-shadow:none}
+.agenda{margin:6px 0 0;padding:0;list-style:none}
+.agenda li{padding:7px 0;border-top:1px solid var(--borda)}
+.agenda li:first-child{border-top:0}
+.agenda b{color:var(--vinho)}
+.agenda span{display:block;font-size:13px;color:var(--muted)}
+header small::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ee7a0;margin-right:5px;vertical-align:1px}
+#chat{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:84%;padding:10px 13px;border-radius:16px;animation:in .25s ease;word-wrap:break-word}
+.bot{background:#fff;border:1px solid var(--borda);border-bottom-left-radius:4px;align-self:flex-start}
+.eu{background:var(--vinho);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.bot a{color:var(--vinho);font-weight:600}
+.link-btn{display:inline-block;margin-top:8px;background:var(--vinho-claro);color:var(--vinho);padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:600}
+.digitando{align-self:flex-start;background:#fff;border:1px solid var(--borda);border-radius:16px;padding:12px 14px;display:flex;gap:4px}
+.digitando i{width:7px;height:7px;border-radius:50%;background:#c9b9bc;animation:pulo 1s infinite}
+.digitando i:nth-child(2){animation-delay:.15s}.digitando i:nth-child(3){animation-delay:.3s}
+@keyframes pulo{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+footer{padding:10px 12px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--borda);background:#fff;min-height:64px}
+.opcoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.opcoes button{border:1.5px solid var(--vinho);background:#fff;color:var(--vinho);border-radius:99px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;font-size:14px}
+.opcoes button:hover{background:var(--vinho-claro)}
+.opcoes.notas button{font-size:24px;padding:6px 10px;border-color:var(--borda)}
+.entrada{display:flex;gap:8px;align-items:flex-end}
+.entrada input,.entrada textarea{flex:1;font:inherit;padding:11px 14px;border:1px solid var(--borda);border-radius:22px;resize:none;outline:none;max-height:120px}
+.entrada input:focus,.entrada textarea:focus{border-color:var(--vinho)}
+.enviar{width:44px;height:44px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:18px;cursor:pointer;flex:none}
+.aviso{font-size:12px;color:#b42318;margin:0 0 6px 6px}
+.fim{text-align:center;color:var(--muted);font-size:13px;padding:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">MVV</div>
+    <div><b>Coordenação de Eventos</b><small>Ministério Verbo da Vida</small></div>
+    <button class="fechar-chat" aria-label="Fechar" onclick="parent.postMessage('fechar-chat-mvv','*')">×</button>
+  </header>
+  <div id="chat"></div>
+  <footer id="rodape"></footer>
+</div>
+<script>
+/* ====== MESMO firebaseConfig da Central (null = demonstração) ====== */
+const FIREBASE_CONFIG = null;
+
+/* ====== Informações rápidas que a página responde sozinha ====== */
+const EVENTOS = [
+  // "ate": depois dessa data o evento some da lista sozinho
+  {nome:'Conferência de Cura', ate:'2026-11-08', info:'A abertura é nesta sexta, 06/11, às 19h30, na Igreja Verbo da Vida – Sede.'}
+];
+/* Calendário 2027 — mesmos dados de https://eventos-mvv.github.io/CALENDARIO/ */
+const CALENDARIO_URL = 'https://eventos-mvv.github.io/CALENDARIO/';
+const SEDE_CG = 'Igreja Verbo da Vida Sede, Campina Grande (PB)';
+const CALENDARIO_2027 = [
+  {sigla:'RAPD', nome:'Reunião Anual de Pastores e Diretorias', ini:'2027-03-17', fim:'2027-03-20', local:SEDE_CG},
+  {sigla:'CMCO/NORTE', nome:'Conferência de Ministros Centro-Oeste/Norte', ini:'2027-05-13', fim:'2027-05-16', local:'Igreja Verbo da Vida em Taguatinga (DF)'},
+  {sigla:'CMNE', nome:'Conferência de Ministros Nordeste', ini:'2027-07-14', fim:'2027-07-17', local:SEDE_CG},
+  {sigla:'JPN', nome:'JPN Global', ini:'2027-07-22', fim:'2027-07-25', local:SEDE_CG},
+  {sigla:'CMSE', nome:'Conferência de Ministros Sudeste', ini:'2027-09-10', fim:'2027-09-13', local:''},
+  {sigla:'CMSUL', nome:'Conferência de Ministros Sul', ini:'2027-09-16', fim:'2027-09-18', local:'Igreja Verbo da Vida em Caxias do Sul (RS)'},
+  {sigla:'CH', nome:'Conferência de Homens', ini:'2027-10-14', fim:'2027-10-16', local:'Igreja Verbo da Vida Estação, Campina Grande (PB)'},
+  {sigla:'CM', nome:'Conferência de Mulheres', ini:'2027-10-14', fim:'2027-10-16', local:SEDE_CG},
+  {sigla:'FORMATURA', nome:'Formatura das Escolas Rhema Sede', ini:'2027-12-04', fim:'2027-12-04', local:SEDE_CG}
+];
+const PORTAL = 'https://verbodavida.org.br/';
+/* WhatsApp da coordenação: enquanto o Firebase não estiver ligado, os pedidos para falar com alguém vão prontos para cá */
+const WHATSAPP_COORD = '5583994041077';
+const TIKETO_ZAP = 'https://wa.me/5527997557004';
+/* ================================================================== */
+
+const DEMO = !FIREBASE_CONFIG;
+const EMBUTIDO = window.self !== window.top || new URLSearchParams(location.search).has('embed');
+if(EMBUTIDO) document.documentElement.classList.add('embutido');
+const LS = 'central-atendimento-demo';
+let db = null;
+if(!DEMO){ firebase.initializeApp(FIREBASE_CONFIG); db = firebase.firestore(); }
+
+const chat = document.getElementById('chat'), rodape = document.getElementById('rodape');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const espera = ms => new Promise(r => setTimeout(r, ms));
+const C = {nome:'', evento:'', contato:''};
+const pn = () => C.nome.trim().split(/\s+/)[0] || '';
+const rolar = () => chat.scrollTop = chat.scrollHeight;
+
+/* ---------- demonstração automática (#auto) ---------- */
+const AUTO = location.hash === '#auto' ? ['Maria Souza','Inscrição e pagamento','Conferência de Cura','Confirmar meu pagamento','Fiz o Pix ontem à noite, no nome de Maria Souza, e ainda não chegou a confirmação.','(85) 90000-0006'] : null;
+
+/* ---------- peças do chat ---------- */
+async function bot(html, pausa){
+  const d = document.createElement('div'); d.className = 'digitando'; d.innerHTML = '<i></i><i></i><i></i>';
+  chat.appendChild(d); rolar();
+  await espera(pausa ?? Math.min(1400, 450 + html.length * 9));
+  d.remove();
+  const m = document.createElement('div'); m.className = 'msg bot'; m.innerHTML = html;
+  chat.appendChild(m); rolar();
+}
+function eu(t){ const m = document.createElement('div'); m.className = 'msg eu'; m.textContent = t; chat.appendChild(m); rolar(); }
+
+function botoes(lista, classe){
+  return new Promise(res => {
+    rodape.innerHTML = `<div class="opcoes ${classe||''}">${lista.map((o,i) => `<button data-i="${i}">${esc(o)}</button>`).join('')}</div>`;
+    const escolher = i => { rodape.innerHTML = ''; eu(lista[i]); res(lista[i]); };
+    rodape.querySelectorAll('button').forEach(b => b.onclick = () => escolher(+b.dataset.i));
+    if(AUTO && AUTO.length){ const v = AUTO.shift(); setTimeout(() => escolher(Math.max(0, lista.indexOf(v))), 900); }
+  });
+}
+function texto(ph, {tipo='text', longo=false, valida} = {}){
+  return new Promise(res => {
+    rodape.innerHTML = `${''}<div class="aviso" id="aviso"></div><div class="entrada">${longo
+      ? `<textarea id="campo" rows="2" placeholder="${esc(ph)}"></textarea>`
+      : `<input id="campo" type="${tipo}" placeholder="${esc(ph)}" autocomplete="off">`}<button class="enviar" id="env" aria-label="Enviar">➤</button></div>`;
+    const campo = document.getElementById('campo');
+    const enviar = () => {
+      const v = campo.value.trim(); if(!v) return;
+      const erro = valida && valida(v);
+      if(erro){ document.getElementById('aviso').textContent = erro; return; }
+      rodape.innerHTML = ''; eu(v); res(v);
+    };
+    document.getElementById('env').onclick = enviar;
+    campo.onkeydown = e => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); enviar(); } };
+    if(AUTO && AUTO.length){ const v = AUTO.shift(); setTimeout(() => { campo.value = v; enviar(); }, 1100); }
+    else campo.focus();
+  });
+}
+
+/* ---------- gravar na Central ---------- */
+async function salvar(d){
+  const agora = Date.now(), resolvido = d.status === 'resolvido';
+  const c = {
+    num:null, protocolo:agora.toString(36).slice(-5).toUpperCase(),
+    nome:C.nome, contato:C.contato, canal:d.canal, evento:C.evento, assunto:d.assunto,
+    prioridade:d.prioridade || 'normal', status:d.status, mensagem:d.mensagem, responsavel:'', notas:[],
+    criadoEm:agora, atualizadoEm:agora, primeiraRespostaEm:resolvido ? agora : null, resolvidoEm:resolvido ? agora : null,
+    satisfacao:d.satisfacao || null
+  };
+  try{
+    if(DEMO){
+      let m = null; try { m = JSON.parse(localStorage.getItem(LS)); } catch(e){}
+      m = m || {chamados:[], cfg:null};
+      c.id = 'p' + agora; c.num = Math.max(0, ...m.chamados.map(x => x.num || 0)) + 1;
+      m.chamados.unshift(c);
+      try { localStorage.setItem(LS, JSON.stringify(m)); } catch(e){}
+    } else {
+      await db.collection('chamados').add(c);
+    }
+  } catch(e){ console.error(e); }
+  return c.num || c.protocolo;
+}
+
+/* ---------- caminhos ---------- */
+async function resolveu(assunto, caminho){
+  await bot('Isso resolveu sua dúvida?');
+  const r = await botoes(['Sim, resolveu! 🙌','Não, preciso falar com alguém']);
+  if(r.startsWith('Não')) return humano('Tudo bem! Me conta o que ficou faltando, em poucas palavras.', assunto);
+  await bot(`Que bom, ${esc(pn())}! Antes de ir, como foi esse atendimento?`);
+  const caras = ['😞','🙁','😐','🙂','😍'];
+  const n = caras.indexOf(await botoes(caras, 'notas')) + 1;
+  await salvar({status:'resolvido', canal:'Autoatendimento', assunto, mensagem:'Resolvido no autoatendimento: ' + caminho, satisfacao:{nota:n, comentario:'', em:Date.now()}});
+  await bot('Obrigado! Deus abençoe. 🙏 Se precisar de mais alguma coisa, é só voltar aqui.');
+  fim();
+}
+
+async function humano(pergunta, assunto, prioridade, extra){
+  await bot(pergunta);
+  let msg = await texto('Escreva aqui…', {longo:true});
+  if(extra) msg += '\n\n' + extra;
+  const atencaoW = prioridade === 'atencao' || /pag|caiu|confirm|vaga|esgot|urgente/i.test(msg);
+  if(!FIREBASE_CONFIG && WHATSAPP_COORD){
+    // sem Central ligada: entrega o pedido pronto no WhatsApp da coordenação
+    await salvar({status:'novo', canal:'Link de atendimento', assunto, prioridade: atencaoW ? 'atencao' : 'normal', mensagem:msg});
+    const txt = `Olá, graça e paz! Sou ${C.nome}.\nAssunto: ${assunto}${C.evento && C.evento !== 'Geral / Outro' ? ' — ' + C.evento : ''}\n\n${msg}`;
+    await bot(`Perfeito, ${esc(pn())}! Agora é só tocar no botão abaixo: sua mensagem já vai pronta para o WhatsApp da coordenação. 👇<br><a class="link-btn" href="https://wa.me/${WHATSAPP_COORD}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Enviar no WhatsApp ↗</a>`);
+    await bot('A coordenação te responde por lá assim que possível. 🙏');
+    fim(); return;
+  }
+  await bot('Qual é o seu WhatsApp com DDD? É por lá que a coordenação vai te responder.');
+  C.contato = await texto('(00) 00000-0000', {tipo:'tel', valida: v => v.replace(/\D/g,'').length < 10 ? 'Coloque o número com DDD, por favor.' : ''});
+  const atencao = prioridade === 'atencao' || /pag|caiu|confirm|vaga|esgot|urgente/i.test(msg);
+  const prot = await salvar({status:'novo', canal:'Link de atendimento', assunto, prioridade: atencao ? 'atencao' : 'normal', mensagem:msg});
+  await bot(`Pronto, ${esc(pn())}! Seu pedido foi registrado com o protocolo <b>#${esc(prot)}</b>. ✅`);
+  await bot('A coordenação vai te responder pelo WhatsApp assim que possível. Não precisa mandar de novo, tá? 🙏');
+  fim();
+}
+
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function periodo(e){
+  const [, m1, d1] = e.ini.split('-').map(Number), [, m2, d2] = e.fim.split('-').map(Number);
+  if(e.ini === e.fim) return `${d1} de ${MESES[m1-1]}`;
+  return m1 === m2 ? `${d1} a ${d2} de ${MESES[m1-1]}` : `${d1} de ${MESES[m1-1]} a ${d2} de ${MESES[m2-1]}`;
+}
+function fim(){ rodape.innerHTML = '<div class="fim">Atendimento finalizado · <a href="#" onclick="location.hash=\'\';location.reload();return false">começar de novo</a></div>'; }
+
+async function iniciar(){
+  await bot('Olá, graça e paz! 🙏', 500);
+  await bot('Aqui é a coordenação de Eventos do Ministério Verbo da Vida. Vou te ajudar rapidinho. Como posso te chamar?');
+  C.nome = await texto('Seu nome');
+
+  await bot(`Prazer, ${esc(pn())}! Como posso te ajudar?`);
+  const a = await botoes(['Datas dos eventos de 2027','Inscrição e pagamento','Local, horário e programação','Reembolso ou troca de titular','Caravanas','Outro assunto']);
+
+  if(a.startsWith('Datas')){
+    C.evento = 'Geral / Outro';
+    await bot('Estes são os eventos de 2027:', 500);
+    await bot('<ul class="agenda">' + CALENDARIO_2027.map(e => `<li><b>${esc(e.sigla)}</b> · ${periodo(e)}<span>${esc(e.nome)} — ${esc(e.local || 'local a confirmar')}</span></li>`).join('') + '</ul>', 1200);
+    await bot(`Os detalhes de cada evento ficam no calendário oficial:<br><a class="link-btn" href="${CALENDARIO_URL}" target="_blank" rel="noopener">Abrir calendário 2027 ↗</a>`);
+    return resolveu('Datas / Calendário', 'datas de 2027');
+  }
+
+  await bot('Sobre qual evento?');
+  const hoje = new Date().toISOString().slice(0,10);
+  const ativos = EVENTOS.filter(e => !e.ate || e.ate >= hoje);
+  let ev = await botoes([...ativos.map(e => e.nome), 'Um evento de 2027', 'Outro evento']);
+  if(ev === 'Um evento de 2027'){
+    await bot('Qual deles?');
+    const sigla = await botoes(CALENDARIO_2027.map(e => e.sigla));
+    ev = CALENDARIO_2027.find(e => e.sigla === sigla).nome + ' 2027';
+  }
+  C.evento = ev.startsWith('Outro') ? 'Geral / Outro' : ev;
+  const e27 = CALENDARIO_2027.find(e => e.nome + ' 2027' === C.evento);
+  const info = EVENTOS.find(e => e.nome === C.evento) ||
+    (e27 && {info:`${e27.nome} será de ${periodo(e27)} de 2027, ${e27.local ? 'na ' + e27.local : 'com local ainda a confirmar'}.`});
+
+  if(a.startsWith('Local')){
+    if(info) await bot(esc(info.info));
+    await bot(`A programação completa fica no Portal Verbo da Vida:<br><a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">Abrir o Portal ↗</a>`);
+    return resolveu('Local / Horário / Programação', 'local e horário');
+  }
+  if(a.startsWith('Inscrição')){
+    await bot('Sobre a inscrição, o que você precisa?');
+    const b = await botoes(['Valores e lotes','Confirmar meu pagamento','Tem desconto?','Outra dúvida']);
+    if(b === 'Valores e lotes'){
+      await bot(`Os valores e lotes de cada evento estão no Portal Verbo da Vida:<br><a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">Ver valores ↗</a>`);
+      return resolveu('Inscrição / Pagamento', 'valores e lotes');
+    }
+    if(b === 'Tem desconto?'){
+      await bot('Nas inscrições não trabalhamos com desconto, tá? Mas os lotes mudam de valor com o tempo, então quanto antes, melhor. 😉');
+      await bot(`<a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">Ver lotes atuais ↗</a>`);
+      return resolveu('Inscrição / Pagamento', 'desconto');
+    }
+    if(b.startsWith('Confirmar')) return humano('Certo! Me conta como foi o pagamento (Pix, cartão…), em que dia e em nome de quem está a inscrição.', 'Inscrição / Pagamento', 'atencao');
+    return humano('Me conta sua dúvida sobre a inscrição.', 'Inscrição / Pagamento');
+  }
+  if(a.startsWith('Reembolso')){
+    await bot('Sua compra foi feita há até 7 dias?');
+    const r = await botoes(['Sim','Não, faz mais tempo']);
+    if(r === 'Sim') await bot(`Então o reembolso é feito direto pela Tiketo, a plataforma das inscrições. É só chamar o suporte deles:<br><a class="link-btn" href="${TIKETO_ZAP}" target="_blank" rel="noopener">Suporte Tiketo no WhatsApp ↗</a>`);
+    else await bot(`O reembolso pela Tiketo é liberado só até 7 dias após a compra. Se você não vai poder ir, dá para <b>transferir sua inscrição para outra pessoa</b>: a troca de titularidade é feita pelo suporte da Tiketo.<br><a class="link-btn" href="${TIKETO_ZAP}" target="_blank" rel="noopener">Suporte Tiketo no WhatsApp ↗</a>`);
+    return resolveu('Reembolso / Titularidade', r === 'Sim' ? 'reembolso até 7 dias' : 'troca de titularidade');
+  }
+  if(a === 'Caravanas') return humano('Me conta sobre sua caravana: igreja, cidade e mais ou menos quantas pessoas.', 'Caravanas');
+  return humano('Me conta em poucas palavras o que você precisa.', 'Outros');
+}
+iniciar();
+</script>
+</body>
+</html>
