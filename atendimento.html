@@ -4,49 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Fale com a Coordenação · Eventos MVV</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <!--
   FALE COM A COORDENAÇÃO — página pública ligada à Central de Atendimento.
   - Sem FIREBASE_CONFIG: modo demonstração (o pedido aparece na Central aberta no mesmo navegador).
   - Com FIREBASE_CONFIG: use o MESMO projeto da Central (as regras estão no topo do central-atendimento.html).
-  - Abra com #auto no final do endereço para ver uma conversa de exemplo rodando sozinha.
+  - Abra com #auto no final do endereço para ver uma conversa de exemplo rodando sozinha (em português).
+  - Os eventos vêm do eventos.json gerado junto com o calendário (mesmos dados do site).
+  - Parâmetros: ?lang=pt|en|es|fr|de|it|ja  e  ?ev=<id do evento> (abre já falando daquele evento).
+  - O que é gravado na Central (assunto, evento) fica sempre em português.
 -->
 <style>
-:root{--vinho:#7a1d2e;--vinho-esc:#5a1220;--vinho-claro:#f7eaed;--bg:#f4efef;--txt:#241a1c;--muted:#7d7073;--borda:#e9e0e2}
+:root{--vinho:#7a1c30;--vinho-esc:#4e0f1e;--vinho-claro:#f7eaed;--bg:#f4efef;--txt:#241a1c;--muted:#7d7073;--borda:#e9e0e2}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 Inter,system-ui,sans-serif;display:flex;justify-content:center}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 'Libre Franklin',system-ui,sans-serif;display:flex;justify-content:center}
 .app{width:100%;max-width:520px;height:100dvh;display:flex;flex-direction:column;background:#fbf8f8;box-shadow:0 0 40px rgba(90,18,32,.08)}
-header{background:var(--vinho);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
-.logo{width:42px;height:42px;border-radius:50%;background:#fff;color:var(--vinho);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
-header b{display:block}
+header{background:linear-gradient(180deg,var(--vinho-esc),var(--vinho));color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;background:#fff;display:grid;place-items:center;flex:none}
+.logo img{width:30px;height:30px;display:block}
+header b{display:block;font-weight:700}
 header small{opacity:.85;font-size:12px}
+header small::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ee7a0;margin-right:5px;vertical-align:1px}
 .fechar-chat{margin-left:auto;background:none;border:0;color:#fff;font-size:26px;line-height:1;cursor:pointer;display:none}
 .embutido .fechar-chat{display:block}
 .embutido body{background:#fbf8f8}.embutido .app{max-width:none;box-shadow:none}
+#chat{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:86%;padding:10px 13px;border-radius:16px;animation:in .25s ease;word-wrap:break-word}
+.bot{background:#fff;border:1px solid var(--borda);border-bottom-left-radius:4px;align-self:flex-start}
+.eu{background:var(--vinho);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.bot a{color:var(--vinho);font-weight:600}
+.link-btn{display:inline-block;margin-top:8px;background:var(--vinho-claro);color:var(--vinho);padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:600}
+.link-btn.forte{background:var(--vinho);color:#fff}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+/* cartão de evento */
+.ev{border-left:4px solid var(--cor,var(--vinho));padding-left:10px}
+.ev .sigla{font-weight:700;color:var(--cor,var(--vinho));letter-spacing:.02em}
+.ev .nome{font-weight:600;margin:2px 0 6px}
+.ev .data{font-size:18px;font-weight:700;color:var(--vinho)}
+.ev .linha{color:var(--muted);font-size:13.5px}
+.ev .falta{display:inline-block;margin-top:6px;background:var(--vinho-claro);color:var(--vinho);font-weight:700;font-size:13px;padding:3px 9px;border-radius:99px}
+.ev .obs{font-size:13.5px;color:var(--muted);margin-top:6px}
 .agenda{margin:6px 0 0;padding:0;list-style:none}
 .agenda li{padding:7px 0;border-top:1px solid var(--borda)}
 .agenda li:first-child{border-top:0}
 .agenda b{color:var(--vinho)}
 .agenda span{display:block;font-size:13px;color:var(--muted)}
-header small::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ee7a0;margin-right:5px;vertical-align:1px}
-#chat{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:84%;padding:10px 13px;border-radius:16px;animation:in .25s ease;word-wrap:break-word}
-.bot{background:#fff;border:1px solid var(--borda);border-bottom-left-radius:4px;align-self:flex-start}
-.eu{background:var(--vinho);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
-.bot a{color:var(--vinho);font-weight:600}
-.link-btn{display:inline-block;margin-top:8px;background:var(--vinho-claro);color:var(--vinho);padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:600}
 .digitando{align-self:flex-start;background:#fff;border:1px solid var(--borda);border-radius:16px;padding:12px 14px;display:flex;gap:4px}
 .digitando i{width:7px;height:7px;border-radius:50%;background:#c9b9bc;animation:pulo 1s infinite}
 .digitando i:nth-child(2){animation-delay:.15s}.digitando i:nth-child(3){animation-delay:.3s}
 @keyframes pulo{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
 @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.msg{animation:none}.digitando i{animation:none}}
 footer{padding:10px 12px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--borda);background:#fff;min-height:64px}
 .opcoes{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .opcoes button{border:1.5px solid var(--vinho);background:#fff;color:var(--vinho);border-radius:99px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;font-size:14px}
 .opcoes button:hover{background:var(--vinho-claro)}
+.opcoes button.destaque{background:var(--vinho);color:#fff}
+.opcoes.siglas button{padding:8px 12px;font-size:13.5px}
 .opcoes.notas button{font-size:24px;padding:6px 10px;border-color:var(--borda)}
 .entrada{display:flex;gap:8px;align-items:flex-end}
 .entrada input,.entrada textarea{flex:1;font:inherit;padding:11px 14px;border:1px solid var(--borda);border-radius:22px;resize:none;outline:none;max-height:120px}
@@ -54,49 +72,134 @@ footer{padding:10px 12px calc(12px + env(safe-area-inset-bottom));border-top:1px
 .enviar{width:44px;height:44px;border-radius:50%;border:0;background:var(--vinho);color:#fff;font-size:18px;cursor:pointer;flex:none}
 .aviso{font-size:12px;color:#b42318;margin:0 0 6px 6px}
 .fim{text-align:center;color:var(--muted);font-size:13px;padding:8px}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--vinho);outline-offset:2px}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="logo">MVV</div>
-    <div><b>Coordenação de Eventos</b><small>Ministério Verbo da Vida</small></div>
-    <button class="fechar-chat" aria-label="Fechar" onclick="parent.postMessage('fechar-chat-mvv','*')">×</button>
+    <div class="logo"><img src="favicon.svg" alt=""></div>
+    <div><b id="titulo">Coordenação de Eventos</b><small id="subtitulo">Ministério Verbo da Vida</small></div>
+    <button class="fechar-chat" id="fechar" aria-label="Fechar" onclick="parent.postMessage('fechar-chat-mvv','*')">×</button>
   </header>
-  <div id="chat"></div>
+  <div id="chat" aria-live="polite"></div>
   <footer id="rodape"></footer>
 </div>
 <script>
 /* ====== MESMO firebaseConfig da Central (null = demonstração) ====== */
 const FIREBASE_CONFIG = null;
 
-/* ====== Informações rápidas que a página responde sozinha ====== */
-const EVENTOS = [
-  // "ate": depois dessa data o evento some da lista sozinho
-  {nome:'Conferência de Cura', ate:'2026-11-08', info:'A abertura é nesta sexta, 06/11, às 19h30, na Igreja Verbo da Vida – Sede.'}
-];
-/* Calendário 2027 — mesmos dados de https://eventos-mvv.github.io/CALENDARIO/ */
+/* ====== Avisos rápidos de eventos que estão acontecendo agora (opcional) ======
+   Ex.: {nome:'Conferência de Cura', ate:'2026-11-08', info:'A abertura é nesta sexta, às 19h30.'}
+   Depois da data "ate" o aviso some sozinho. */
+const AVISOS = [];
+
 const CALENDARIO_URL = 'https://eventos-mvv.github.io/CALENDARIO/';
-const SEDE_CG = 'Igreja Verbo da Vida Sede, Campina Grande (PB)';
-const CALENDARIO_2027 = [
-  {sigla:'RAPD', nome:'Reunião Anual de Pastores e Diretorias', ini:'2027-03-17', fim:'2027-03-20', local:SEDE_CG},
-  {sigla:'CMCO/NORTE', nome:'Conferência de Ministros Centro-Oeste/Norte', ini:'2027-05-13', fim:'2027-05-16', local:'Igreja Verbo da Vida em Taguatinga (DF)'},
-  {sigla:'CMNE', nome:'Conferência de Ministros Nordeste', ini:'2027-07-14', fim:'2027-07-17', local:SEDE_CG},
-  {sigla:'JPN', nome:'JPN Global', ini:'2027-07-22', fim:'2027-07-25', local:SEDE_CG},
-  {sigla:'CMSE', nome:'Conferência de Ministros Sudeste', ini:'2027-09-10', fim:'2027-09-13', local:''},
-  {sigla:'CMSUL', nome:'Conferência de Ministros Sul', ini:'2027-09-16', fim:'2027-09-18', local:'Igreja Verbo da Vida em Caxias do Sul (RS)'},
-  {sigla:'CH', nome:'Conferência de Homens', ini:'2027-10-14', fim:'2027-10-16', local:'Igreja Verbo da Vida Estação, Campina Grande (PB)'},
-  {sigla:'CM', nome:'Conferência de Mulheres', ini:'2027-10-14', fim:'2027-10-16', local:SEDE_CG},
-  {sigla:'FORMATURA', nome:'Formatura das Escolas Rhema Sede', ini:'2027-12-04', fim:'2027-12-04', local:SEDE_CG}
-];
 const PORTAL = 'https://verbodavida.org.br/';
 /* WhatsApp da coordenação: enquanto o Firebase não estiver ligado, os pedidos para falar com alguém vão prontos para cá */
 const WHATSAPP_COORD = '5583994041077';
 const TIKETO_ZAP = 'https://wa.me/5527997557004';
 /* ================================================================== */
 
+/* ---------- idioma ---------- */
+const LANGS = ['pt','en','es','fr','de','it','ja'];
+const LOCALE = {pt:'pt-BR',en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',it:'it-IT',ja:'ja-JP'};
+const P = new URLSearchParams(location.search);
+const LANG = (() => {
+  const q = (P.get('lang') || '').slice(0,2).toLowerCase();
+  if(LANGS.includes(q)) return q;
+  try { const s = localStorage.getItem('mvv-idioma'); if(LANGS.includes(s)) return s; } catch(e){}
+  const n = (navigator.language || 'pt').slice(0,2).toLowerCase();
+  return LANGS.includes(n) ? n : 'pt';
+})();
+document.documentElement.lang = LOCALE[LANG];
+
+const T = {
+pt:{title:'Coordenação de Eventos',close:'Fechar',send:'Enviar',hello:'Olá, graça e paz! 🙏',intro:'Aqui é a coordenação de Eventos do Ministério Verbo da Vida. Vou te ajudar rapidinho. Como posso te chamar?',namePh:'Seu nome',nice:n=>`Prazer, ${n}! Como posso te ajudar?`,
+ about:(s,m)=>`Sobre ${m?'o':'a'} ${s}`,optDates:'Datas e locais dos eventos',optReg:'Inscrição e pagamento',optRefund:'Reembolso ou troca de titular',optCaravan:'Caravanas',optOther:'Outro assunto',
+ whichEvent:'Qual evento?',seeAll:'Ver todos',allIntro:'Estes são os eventos de 2027:',tbd:'Local a confirmar',left:n=>n===1?'Falta 1 dia':`Faltam ${n} dias`,now:'Acontecendo agora',past:'Este evento já aconteceu.',
+ regBtn:'Fazer inscrição ↗',regSoon:'As inscrições abrem em breve.',noReg:'Este evento não tem inscrição.',seeCal:'Ver no calendário ↗',openCal:'Abrir calendário 2027 ↗',calDetails:'Os detalhes de cada evento ficam no calendário oficial:',prog:'A programação completa fica no Portal Verbo da Vida.',openPortal:'Abrir o Portal ↗',
+ resolved:'Isso resolveu sua dúvida?',yes:'Sim, resolveu! 🙌',no:'Não, preciso falar com alguém',missing:'Tudo bem! Me conta o que ficou faltando, em poucas palavras.',rate:n=>`Que bom, ${n}! Antes de ir, como foi esse atendimento?`,thanks:'Obrigado! Deus abençoe. 🙏 Se precisar de mais alguma coisa, é só voltar aqui.',
+ writeHere:'Escreva aqui…',zapReady:n=>`Perfeito, ${n}! Agora é só tocar no botão abaixo: sua mensagem já vai pronta para o WhatsApp da coordenação. 👇`,zapBtn:'Enviar no WhatsApp ↗',zapWait:'A coordenação te responde por lá assim que possível. 🙏',
+ askPhone:'Qual é o seu WhatsApp com DDD? É por lá que a coordenação vai te responder.',phoneErr:'Coloque o número com DDD, por favor.',protocol:(n,p)=>`Pronto, ${n}! Seu pedido foi registrado com o protocolo <b>#${p}</b>. ✅`,noRepeat:'A coordenação vai te responder pelo WhatsApp assim que possível. Não precisa mandar de novo, tá? 🙏',
+ regWhich:'Sobre qual evento?',otherEvent:'Outro evento',regWhat:'Sobre a inscrição, o que você precisa?',regOpts:['Valores e lotes','Confirmar meu pagamento','Tem desconto?','Outra dúvida'],prices:'Os valores e lotes de cada evento estão no Portal Verbo da Vida:',seePrices:'Ver valores ↗',regLink:s=>`As inscrições da ${s} já estão abertas:`,
+ noDiscount:'Nas inscrições não trabalhamos com desconto, tá? Mas os lotes mudam de valor com o tempo, então quanto antes, melhor. 😉',seeLots:'Ver lotes atuais ↗',payAsk:'Certo! Me conta como foi o pagamento (Pix, cartão…), em que dia e em nome de quem está a inscrição.',regAsk:'Me conta sua dúvida sobre a inscrição.',
+ refundAsk:'Sua compra foi feita há até 7 dias?',yesOnly:'Sim',noLonger:'Não, faz mais tempo',refundYes:'Então o reembolso é feito direto pela Tiketo, a plataforma das inscrições. É só chamar o suporte deles:',refundNo:'O reembolso pela Tiketo é liberado só até 7 dias após a compra. Se você não vai poder ir, dá para <b>transferir sua inscrição para outra pessoa</b>: a troca de titularidade é feita pelo suporte da Tiketo.',tiketo:'Suporte Tiketo no WhatsApp ↗',
+ caravanAsk:'Me conta sobre sua caravana: igreja, cidade e mais ou menos quantas pessoas.',otherAsk:'Me conta em poucas palavras o que você precisa.',ended:'Atendimento finalizado',restart:'começar de novo'},
+en:{title:'Events Team',close:'Close',send:'Send',hello:'Hello, grace and peace! 🙏',intro:"This is the Events team of Ministério Verbo da Vida. I'll help you quickly. What's your name?",namePh:'Your name',nice:n=>`Nice to meet you, ${n}! How can I help?`,
+ about:s=>`About ${s}`,optDates:'Event dates and venues',optReg:'Registration and payment',optRefund:'Refund or transfer',optCaravan:'Group trips (caravans)',optOther:'Something else',
+ whichEvent:'Which event?',seeAll:'See all',allIntro:'These are the 2027 events:',tbd:'Venue to be confirmed',left:n=>n===1?'1 day to go':`${n} days to go`,now:'Happening now',past:'This event has already taken place.',
+ regBtn:'Register ↗',regSoon:'Registration opens soon.',noReg:'This event has no registration.',seeCal:'See in the calendar ↗',openCal:'Open the 2027 calendar ↗',calDetails:'Details for each event are in the official calendar:',prog:'The full schedule is on the Verbo da Vida website.',openPortal:'Open the website ↗',
+ resolved:'Did that answer your question?',yes:'Yes, thanks! 🙌',no:'No, I need to talk to someone',missing:'No problem! Tell me briefly what you still need.',rate:n=>`Great, ${n}! Before you go, how was this conversation?`,thanks:'Thank you! God bless you. 🙏 If you need anything else, just come back here.',
+ writeHere:'Write here…',zapReady:n=>`Perfect, ${n}! Just tap the button below: your message goes ready to the team's WhatsApp. 👇`,zapBtn:'Send on WhatsApp ↗',zapWait:'The team will reply there as soon as possible. 🙏',
+ askPhone:"What's your WhatsApp number, with country and area code? The team will reply there.",phoneErr:'Please include the area code.',protocol:(n,p)=>`Done, ${n}! Your request was registered as <b>#${p}</b>. ✅`,noRepeat:"The team will reply on WhatsApp as soon as possible. No need to send it again. 🙏",
+ regWhich:'Which event?',otherEvent:'Another event',regWhat:'What do you need about registration?',regOpts:['Prices','Confirm my payment','Any discount?','Another question'],prices:'Prices for each event are on the Verbo da Vida website:',seePrices:'See prices ↗',regLink:s=>`Registration for ${s} is open:`,
+ noDiscount:"We don't offer discounts on registration, but prices go up over time, so the sooner the better. 😉",seeLots:'See current prices ↗',payAsk:'Sure! Tell me how you paid (Pix, card…), on which day and in whose name the registration is.',regAsk:'Tell me your question about registration.',
+ refundAsk:'Did you buy it within the last 7 days?',yesOnly:'Yes',noLonger:'No, it was longer ago',refundYes:'Then the refund is handled by Tiketo, the registration platform. Just contact their support:',refundNo:"Tiketo only allows refunds up to 7 days after purchase. If you can't attend, you can <b>transfer your registration to someone else</b> through Tiketo support.",tiketo:'Tiketo support on WhatsApp ↗',
+ caravanAsk:'Tell me about your group: church, city and roughly how many people.',otherAsk:'Tell me briefly what you need.',ended:'Conversation ended',restart:'start again'},
+es:{title:'Coordinación de Eventos',close:'Cerrar',send:'Enviar',hello:'¡Hola, gracia y paz! 🙏',intro:'Somos la coordinación de Eventos del Ministerio Verbo da Vida. Te ayudo enseguida. ¿Cómo te llamas?',namePh:'Tu nombre',nice:n=>`¡Mucho gusto, ${n}! ¿En qué te puedo ayudar?`,
+ about:(s,m)=>`Sobre ${m?'el':'la'} ${s}`,optDates:'Fechas y lugares de los eventos',optReg:'Inscripción y pago',optRefund:'Reembolso o cambio de titular',optCaravan:'Caravanas',optOther:'Otro asunto',
+ whichEvent:'¿Qué evento?',seeAll:'Ver todos',allIntro:'Estos son los eventos de 2027:',tbd:'Lugar por confirmar',left:n=>n===1?'Falta 1 día':`Faltan ${n} días`,now:'En curso',past:'Este evento ya se realizó.',
+ regBtn:'Inscribirme ↗',regSoon:'Las inscripciones abren pronto.',noReg:'Este evento no tiene inscripción.',seeCal:'Ver en el calendario ↗',openCal:'Abrir calendario 2027 ↗',calDetails:'Los detalles de cada evento están en el calendario oficial:',prog:'La programación completa está en el Portal Verbo da Vida.',openPortal:'Abrir el Portal ↗',
+ resolved:'¿Eso resolvió tu duda?',yes:'¡Sí, resuelto! 🙌',no:'No, necesito hablar con alguien',missing:'¡Está bien! Cuéntame en pocas palabras qué te falta.',rate:n=>`¡Qué bien, ${n}! Antes de irte, ¿cómo fue esta atención?`,thanks:'¡Gracias! Dios te bendiga. 🙏 Si necesitas algo más, vuelve aquí.',
+ writeHere:'Escribe aquí…',zapReady:n=>`¡Perfecto, ${n}! Toca el botón de abajo: tu mensaje va listo al WhatsApp de la coordinación. 👇`,zapBtn:'Enviar por WhatsApp ↗',zapWait:'La coordinación te responde por allí lo antes posible. 🙏',
+ askPhone:'¿Cuál es tu WhatsApp con código de área? La coordinación te responderá por allí.',phoneErr:'Incluye el código de área, por favor.',protocol:(n,p)=>`¡Listo, ${n}! Tu pedido quedó registrado con el protocolo <b>#${p}</b>. ✅`,noRepeat:'La coordinación te responderá por WhatsApp lo antes posible. No hace falta enviarlo de nuevo. 🙏',
+ regWhich:'¿Sobre qué evento?',otherEvent:'Otro evento',regWhat:'Sobre la inscripción, ¿qué necesitas?',regOpts:['Valores','Confirmar mi pago','¿Hay descuento?','Otra duda'],prices:'Los valores de cada evento están en el Portal Verbo da Vida:',seePrices:'Ver valores ↗',regLink:s=>`Las inscripciones para ${s} ya están abiertas:`,
+ noDiscount:'No trabajamos con descuentos en las inscripciones, pero los valores suben con el tiempo: cuanto antes, mejor. 😉',seeLots:'Ver valores actuales ↗',payAsk:'¡Claro! Cuéntame cómo pagaste (Pix, tarjeta…), qué día y a nombre de quién está la inscripción.',regAsk:'Cuéntame tu duda sobre la inscripción.',
+ refundAsk:'¿Compraste hace 7 días o menos?',yesOnly:'Sí',noLonger:'No, hace más tiempo',refundYes:'Entonces el reembolso lo hace directamente Tiketo, la plataforma de inscripciones. Contacta a su soporte:',refundNo:'Tiketo solo permite reembolsos hasta 7 días después de la compra. Si no puedes ir, puedes <b>transferir tu inscripción a otra persona</b> a través del soporte de Tiketo.',tiketo:'Soporte Tiketo por WhatsApp ↗',
+ caravanAsk:'Cuéntame sobre tu caravana: iglesia, ciudad y más o menos cuántas personas.',otherAsk:'Cuéntame en pocas palabras qué necesitas.',ended:'Atención finalizada',restart:'empezar de nuevo'},
+fr:{title:'Coordination des événements',close:'Fermer',send:'Envoyer',hello:'Bonjour, grâce et paix ! 🙏',intro:'Ici la coordination des événements du Ministério Verbo da Vida. Je vous aide rapidement. Comment vous appelez-vous ?',namePh:'Votre prénom',nice:n=>`Enchanté, ${n} ! Comment puis-je vous aider ?`,
+ about:s=>`À propos de ${s}`,optDates:'Dates et lieux des événements',optReg:'Inscription et paiement',optRefund:'Remboursement ou changement de titulaire',optCaravan:'Groupes (caravanes)',optOther:'Autre sujet',
+ whichEvent:'Quel événement ?',seeAll:'Tout voir',allIntro:'Voici les événements de 2027 :',tbd:'Lieu à confirmer',left:n=>n===1?'Plus que 1 jour':`Plus que ${n} jours`,now:'En cours',past:'Cet événement a déjà eu lieu.',
+ regBtn:"S'inscrire ↗",regSoon:'Les inscriptions ouvrent bientôt.',noReg:"Cet événement n'a pas d'inscription.",seeCal:'Voir dans le calendrier ↗',openCal:'Ouvrir le calendrier 2027 ↗',calDetails:'Les détails de chaque événement sont dans le calendrier officiel :',prog:'Le programme complet est sur le portail Verbo da Vida.',openPortal:'Ouvrir le portail ↗',
+ resolved:'Cela a-t-il répondu à votre question ?',yes:'Oui, merci ! 🙌',no:"Non, j'ai besoin de parler à quelqu'un",missing:"D'accord ! Dites-moi en quelques mots ce qu'il vous manque.",rate:n=>`Parfait, ${n} ! Avant de partir, comment s'est passé cet échange ?`,thanks:'Merci ! Que Dieu vous bénisse. 🙏 Si vous avez besoin d\'autre chose, revenez ici.',
+ writeHere:'Écrivez ici…',zapReady:n=>`Parfait, ${n} ! Touchez le bouton ci-dessous : votre message part tout prêt vers le WhatsApp de la coordination. 👇`,zapBtn:'Envoyer sur WhatsApp ↗',zapWait:'La coordination vous répondra là-bas dès que possible. 🙏',
+ askPhone:"Quel est votre numéro WhatsApp, avec l'indicatif ? La coordination vous répondra par là.",phoneErr:"Indiquez le numéro avec l'indicatif, s'il vous plaît.",protocol:(n,p)=>`C'est fait, ${n} ! Votre demande est enregistrée sous le numéro <b>#${p}</b>. ✅`,noRepeat:"La coordination vous répondra sur WhatsApp dès que possible. Inutile de renvoyer la demande. 🙏",
+ regWhich:'Quel événement ?',otherEvent:'Un autre événement',regWhat:"De quoi avez-vous besoin pour l'inscription ?",regOpts:['Tarifs','Confirmer mon paiement','Y a-t-il une réduction ?','Autre question'],prices:'Les tarifs de chaque événement sont sur le portail Verbo da Vida :',seePrices:'Voir les tarifs ↗',regLink:s=>`Les inscriptions pour ${s} sont ouvertes :`,
+ noDiscount:"Nous ne faisons pas de réduction sur les inscriptions, mais les tarifs augmentent avec le temps : le plus tôt est le mieux. 😉",seeLots:'Voir les tarifs actuels ↗',payAsk:"Bien sûr ! Dites-moi comment vous avez payé (Pix, carte…), quel jour et au nom de qui est l'inscription.",regAsk:"Dites-moi votre question sur l'inscription.",
+ refundAsk:'Avez-vous acheté il y a 7 jours ou moins ?',yesOnly:'Oui',noLonger:'Non, il y a plus longtemps',refundYes:"Le remboursement est alors fait directement par Tiketo, la plateforme d'inscription. Contactez leur support :",refundNo:"Tiketo ne rembourse que jusqu'à 7 jours après l'achat. Si vous ne pouvez pas venir, vous pouvez <b>transférer votre inscription à une autre personne</b> via le support Tiketo.",tiketo:'Support Tiketo sur WhatsApp ↗',
+ caravanAsk:'Parlez-moi de votre groupe : église, ville et nombre approximatif de personnes.',otherAsk:'Dites-moi en quelques mots ce dont vous avez besoin.',ended:'Conversation terminée',restart:'recommencer'},
+de:{title:'Veranstaltungsteam',close:'Schließen',send:'Senden',hello:'Hallo, Gnade und Frieden! 🙏',intro:'Hier ist das Veranstaltungsteam des Ministério Verbo da Vida. Ich helfe dir schnell weiter. Wie heißt du?',namePh:'Dein Name',nice:n=>`Schön, dich kennenzulernen, ${n}! Wie kann ich helfen?`,
+ about:s=>`Zur ${s}`,optDates:'Termine und Orte der Veranstaltungen',optReg:'Anmeldung und Zahlung',optRefund:'Erstattung oder Übertragung',optCaravan:'Gruppenreisen',optOther:'Anderes Anliegen',
+ whichEvent:'Welche Veranstaltung?',seeAll:'Alle anzeigen',allIntro:'Das sind die Veranstaltungen 2027:',tbd:'Ort wird noch bekannt gegeben',left:n=>n===1?'Noch 1 Tag':`Noch ${n} Tage`,now:'Findet gerade statt',past:'Diese Veranstaltung hat bereits stattgefunden.',
+ regBtn:'Anmelden ↗',regSoon:'Die Anmeldung öffnet bald.',noReg:'Für diese Veranstaltung gibt es keine Anmeldung.',seeCal:'Im Kalender ansehen ↗',openCal:'Kalender 2027 öffnen ↗',calDetails:'Die Details jeder Veranstaltung stehen im offiziellen Kalender:',prog:'Das vollständige Programm steht auf der Website von Verbo da Vida.',openPortal:'Website öffnen ↗',
+ resolved:'Hat dir das weitergeholfen?',yes:'Ja, danke! 🙌',no:'Nein, ich möchte mit jemandem sprechen',missing:'Kein Problem! Schreib mir kurz, was noch fehlt.',rate:n=>`Schön, ${n}! Wie war dieses Gespräch für dich?`,thanks:'Danke! Gott segne dich. 🙏 Wenn du noch etwas brauchst, komm einfach wieder.',
+ writeHere:'Hier schreiben…',zapReady:n=>`Super, ${n}! Tippe einfach auf den Button unten: deine Nachricht geht fertig an das WhatsApp des Teams. 👇`,zapBtn:'Per WhatsApp senden ↗',zapWait:'Das Team antwortet dir dort so bald wie möglich. 🙏',
+ askPhone:'Wie lautet deine WhatsApp-Nummer mit Vorwahl? Das Team antwortet dir dort.',phoneErr:'Bitte gib die Nummer mit Vorwahl an.',protocol:(n,p)=>`Erledigt, ${n}! Deine Anfrage wurde unter <b>#${p}</b> registriert. ✅`,noRepeat:'Das Team antwortet dir so bald wie möglich per WhatsApp. Du musst nichts erneut senden. 🙏',
+ regWhich:'Zu welcher Veranstaltung?',otherEvent:'Eine andere Veranstaltung',regWhat:'Was brauchst du zur Anmeldung?',regOpts:['Preise','Zahlung bestätigen','Gibt es Rabatt?','Andere Frage'],prices:'Die Preise jeder Veranstaltung stehen auf der Website von Verbo da Vida:',seePrices:'Preise ansehen ↗',regLink:s=>`Die Anmeldung zur ${s} ist geöffnet:`,
+ noDiscount:'Rabatte gibt es bei der Anmeldung nicht, aber die Preise steigen mit der Zeit: je früher, desto besser. 😉',seeLots:'Aktuelle Preise ansehen ↗',payAsk:'Klar! Schreib mir, wie du bezahlt hast (Pix, Karte…), an welchem Tag und auf wessen Namen die Anmeldung läuft.',regAsk:'Schreib mir deine Frage zur Anmeldung.',
+ refundAsk:'Hast du vor höchstens 7 Tagen gekauft?',yesOnly:'Ja',noLonger:'Nein, schon länger',refundYes:'Dann erstattet Tiketo, die Anmeldeplattform, direkt. Melde dich einfach beim Support:',refundNo:'Tiketo erstattet nur bis 7 Tage nach dem Kauf. Wenn du nicht kommen kannst, kannst du <b>deine Anmeldung auf eine andere Person übertragen</b>, über den Tiketo-Support.',tiketo:'Tiketo-Support auf WhatsApp ↗',
+ caravanAsk:'Erzähl mir von deiner Gruppe: Gemeinde, Stadt und ungefähr wie viele Personen.',otherAsk:'Schreib mir kurz, was du brauchst.',ended:'Gespräch beendet',restart:'neu beginnen'},
+it:{title:'Coordinamento eventi',close:'Chiudi',send:'Invia',hello:'Ciao, grazia e pace! 🙏',intro:'Qui è il coordinamento eventi del Ministério Verbo da Vida. Ti aiuto subito. Come ti chiami?',namePh:'Il tuo nome',nice:n=>`Piacere, ${n}! Come posso aiutarti?`,
+ about:s=>`Informazioni su ${s}`,optDates:'Date e luoghi degli eventi',optReg:'Iscrizione e pagamento',optRefund:'Rimborso o cambio intestatario',optCaravan:'Gruppi (carovane)',optOther:'Altro',
+ whichEvent:'Quale evento?',seeAll:'Vedi tutti',allIntro:'Questi sono gli eventi del 2027:',tbd:'Luogo da confermare',left:n=>n===1?'Manca 1 giorno':`Mancano ${n} giorni`,now:'In corso',past:'Questo evento si è già svolto.',
+ regBtn:'Iscriviti ↗',regSoon:'Le iscrizioni apriranno presto.',noReg:'Questo evento non prevede iscrizione.',seeCal:'Vedi nel calendario ↗',openCal:'Apri il calendario 2027 ↗',calDetails:'I dettagli di ogni evento sono nel calendario ufficiale:',prog:'Il programma completo è sul portale Verbo da Vida.',openPortal:'Apri il portale ↗',
+ resolved:'Ti ho risposto?',yes:'Sì, grazie! 🙌',no:'No, ho bisogno di parlare con qualcuno',missing:'Va bene! Dimmi in poche parole cosa ti manca.',rate:n=>`Bene, ${n}! Prima di andare, com'è andata questa conversazione?`,thanks:'Grazie! Dio ti benedica. 🙏 Se ti serve altro, torna pure qui.',
+ writeHere:'Scrivi qui…',zapReady:n=>`Perfetto, ${n}! Tocca il pulsante qui sotto: il tuo messaggio arriva già pronto sul WhatsApp del coordinamento. 👇`,zapBtn:'Invia su WhatsApp ↗',zapWait:'Il coordinamento ti risponderà lì il prima possibile. 🙏',
+ askPhone:'Qual è il tuo numero WhatsApp con prefisso? Il coordinamento ti risponderà lì.',phoneErr:'Inserisci il numero con il prefisso, per favore.',protocol:(n,p)=>`Fatto, ${n}! La tua richiesta è registrata con il numero <b>#${p}</b>. ✅`,noRepeat:'Il coordinamento ti risponderà su WhatsApp il prima possibile. Non serve inviarla di nuovo. 🙏',
+ regWhich:'Quale evento?',otherEvent:'Un altro evento',regWhat:"Per l'iscrizione, di cosa hai bisogno?",regOpts:['Prezzi','Confermare il pagamento','Ci sono sconti?','Altra domanda'],prices:'I prezzi di ogni evento sono sul portale Verbo da Vida:',seePrices:'Vedi i prezzi ↗',regLink:s=>`Le iscrizioni a ${s} sono aperte:`,
+ noDiscount:'Non facciamo sconti sulle iscrizioni, ma i prezzi salgono col tempo: prima è meglio. 😉',seeLots:'Vedi i prezzi attuali ↗',payAsk:"Certo! Dimmi come hai pagato (Pix, carta…), in che giorno e a nome di chi è l'iscrizione.",regAsk:"Dimmi la tua domanda sull'iscrizione.",
+ refundAsk:"Hai acquistato da 7 giorni o meno?",yesOnly:'Sì',noLonger:'No, da più tempo',refundYes:"Allora il rimborso lo fa direttamente Tiketo, la piattaforma delle iscrizioni. Contatta il loro supporto:",refundNo:"Tiketo rimborsa solo fino a 7 giorni dopo l'acquisto. Se non puoi venire, puoi <b>trasferire l'iscrizione a un'altra persona</b> tramite il supporto Tiketo.",tiketo:'Supporto Tiketo su WhatsApp ↗',
+ caravanAsk:'Raccontami del tuo gruppo: chiesa, città e più o meno quante persone.',otherAsk:'Dimmi in poche parole di cosa hai bisogno.',ended:'Conversazione terminata',restart:'ricomincia'},
+ja:{title:'イベント運営チーム',close:'閉じる',send:'送信',hello:'こんにちは、恵みと平安がありますように！🙏',intro:'ヴェルボ・ダ・ヴィダ・ミニストリーのイベント運営チームです。すぐにお手伝いします。お名前を教えてください。',namePh:'お名前',nice:n=>`${n}さん、よろしくお願いします！どのようなご用件ですか？`,
+ about:s=>`${s}について`,optDates:'イベントの日程と会場',optReg:'申込と支払い',optRefund:'返金・名義変更',optCaravan:'団体参加',optOther:'その他',
+ whichEvent:'どのイベントですか？',seeAll:'すべて表示',allIntro:'2027年のイベントはこちらです：',tbd:'会場未定',left:n=>`あと${n}日`,now:'開催中',past:'このイベントはすでに終了しました。',
+ regBtn:'申し込む ↗',regSoon:'申込受付はまもなく開始します。',noReg:'このイベントは申込不要です。',seeCal:'カレンダーで見る ↗',openCal:'2027年カレンダーを開く ↗',calDetails:'各イベントの詳細は公式カレンダーをご覧ください：',prog:'プログラムの詳細はヴェルボ・ダ・ヴィダ公式サイトに掲載されています。',openPortal:'公式サイトを開く ↗',
+ resolved:'ご質問は解決しましたか？',yes:'はい、解決しました！🙌',no:'いいえ、担当者と話したい',missing:'承知しました。足りない点を簡単に教えてください。',rate:n=>`よかったです、${n}さん！最後に、今回の対応はいかがでしたか？`,thanks:'ありがとうございました！神の祝福がありますように。🙏 また何かあればいつでもどうぞ。',
+ writeHere:'ここに入力…',zapReady:n=>`${n}さん、ありがとうございます！下のボタンを押すと、メッセージが運営チームのWhatsAppに送信できる状態で開きます。👇`,zapBtn:'WhatsAppで送信 ↗',zapWait:'運営チームからできるだけ早く返信します。🙏',
+ askPhone:'国番号付きのWhatsApp番号を教えてください。運営チームから返信します。',phoneErr:'国番号・市外局番を含めて入力してください。',protocol:(n,p)=>`${n}さん、受け付けました！受付番号は <b>#${p}</b> です。✅`,noRepeat:'運営チームからWhatsAppでできるだけ早く返信します。再送信の必要はありません。🙏',
+ regWhich:'どのイベントですか？',otherEvent:'その他のイベント',regWhat:'申込について、どのようなご用件ですか？',regOpts:['料金','支払いの確認','割引はありますか？','その他の質問'],prices:'各イベントの料金はヴェルボ・ダ・ヴィダ公式サイトをご覧ください：',seePrices:'料金を見る ↗',regLink:s=>`${s}の申込受付中です：`,
+ noDiscount:'申込の割引は行っていませんが、料金は時期によって上がりますので、お早めのお申し込みがおすすめです。😉',seeLots:'現在の料金を見る ↗',payAsk:'承知しました！お支払い方法（Pix、カードなど）、お支払い日、申込者のお名前を教えてください。',regAsk:'申込についてのご質問をどうぞ。',
+ refundAsk:'ご購入から7日以内ですか？',yesOnly:'はい',noLonger:'いいえ、それ以上前です',refundYes:'返金は申込プラットフォームのTiketoが直接対応します。サポートにご連絡ください：',refundNo:'Tiketoの返金は購入後7日以内に限られます。参加できない場合は、Tiketoのサポートで<b>申込を別の方に譲渡</b>できます。',tiketo:'TiketoサポートにWhatsAppで連絡 ↗',
+ caravanAsk:'団体について教えてください：教会名、都市、おおよその人数。',otherAsk:'ご用件を簡単に教えてください。',ended:'対応を終了しました',restart:'最初からやり直す'}
+};
+const L = T[LANG];
+document.getElementById('titulo').textContent = L.title;
+document.getElementById('fechar').setAttribute('aria-label', L.close);
+
+/* ---------- Central / Firebase (sem alteração no que é gravado) ---------- */
 const DEMO = !FIREBASE_CONFIG;
-const EMBUTIDO = window.self !== window.top || new URLSearchParams(location.search).has('embed');
+const EMBUTIDO = window.self !== window.top || P.has('embed');
 if(EMBUTIDO) document.documentElement.classList.add('embutido');
 const LS = 'central-atendimento-demo';
 let db = null;
@@ -109,33 +212,67 @@ const C = {nome:'', evento:'', contato:''};
 const pn = () => C.nome.trim().split(/\s+/)[0] || '';
 const rolar = () => chat.scrollTop = chat.scrollHeight;
 
-/* ---------- demonstração automática (#auto) ---------- */
-const AUTO = location.hash === '#auto' ? ['Maria Souza','Inscrição e pagamento','Conferência de Cura','Confirmar meu pagamento','Fiz o Pix ontem à noite, no nome de Maria Souza, e ainda não chegou a confirmação.','(85) 90000-0006'] : null;
+/* ---------- eventos (mesmos dados do calendário) ---------- */
+let EVENTOS = [];
+const carregar = fetch('eventos.json', {cache:'no-cache'}).then(r => r.ok ? r.json() : null).then(d => { EVENTOS = (d && d.eventos) || []; }).catch(() => {});
+const nomeEv = e => e.nome[LANG] || e.nome.pt;
+const nomePt = e => e.nome.pt;
+const localEv = e => e.local[LANG] || e.local.pt || '';
+const hojeISO = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10); // horário de Brasília
+const dt = iso => new Date(iso + 'T12:00:00Z');
+const fmtDia = new Intl.DateTimeFormat(LOCALE[LANG], {day:'numeric', month:'long', timeZone:'UTC'});
+const fmtSem = new Intl.DateTimeFormat(LOCALE[LANG], {weekday:'long', timeZone:'UTC'});
+function periodo(e){
+  if(e.ini === e.fim) return fmtDia.format(dt(e.ini));
+  try { return fmtDia.formatRange(dt(e.ini), dt(e.fim)); } catch(_) { return fmtDia.format(dt(e.ini)) + ' – ' + fmtDia.format(dt(e.fim)); }
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const semana = e => cap(fmtSem.format(dt(e.ini))) + (e.ini === e.fim ? '' : ' – ' + fmtSem.format(dt(e.fim)));
+const proximos = () => EVENTOS.filter(e => e.fim >= hojeISO());
+
+function cartao(e){
+  const hoje = hojeISO();
+  const dias = Math.round((dt(e.ini) - dt(hoje)) / 864e5);
+  const quando = e.fim < hoje ? `<div class="obs">${esc(L.past)}</div>` : e.ini <= hoje ? `<span class="falta">${esc(L.now)}</span>` : `<span class="falta">${esc(L.left(dias))}</span>`;
+  const insc = e.inscricao === null ? `<div class="obs">${esc(L.noReg)}</div>`
+    : e.inscricao ? '' : `<div class="obs">${esc(L.regSoon)}</div>`;
+  const botoesLink = [
+    e.inscricao ? `<a class="link-btn forte" href="${esc(e.inscricao)}" target="_blank" rel="noopener">${esc(L.regBtn)}</a>` : '',
+    `<a class="link-btn" href="${CALENDARIO_URL}#evento-${esc(e.id)}" target="_blank" rel="noopener">${esc(L.seeCal)}</a>`
+  ].join('');
+  return `<div class="ev"><div class="sigla">${esc(e.sigla)}</div><div class="nome">${esc(nomeEv(e))}</div>
+    <div class="data">${esc(periodo(e))}</div><div class="linha">${esc(semana(e))}</div>
+    <div class="linha">📍 ${esc(localEv(e) || L.tbd)}</div>${quando}${insc}<div class="links">${botoesLink}</div></div>`;
+}
+
+/* ---------- demonstração automática (#auto, só em português) ---------- */
+const AUTO = location.hash === '#auto' && LANG === 'pt' ? ['Maria Souza','Inscrição e pagamento','CMNE','Confirmar meu pagamento','Fiz o Pix ontem à noite, no nome de Maria Souza, e ainda não chegou a confirmação.','(85) 90000-0006'] : null;
 
 /* ---------- peças do chat ---------- */
 async function bot(html, pausa){
   const d = document.createElement('div'); d.className = 'digitando'; d.innerHTML = '<i></i><i></i><i></i>';
   chat.appendChild(d); rolar();
-  await espera(pausa ?? Math.min(1400, 450 + html.length * 9));
+  await espera(pausa ?? Math.min(1400, 450 + html.replace(/<[^>]+>/g,'').length * 9));
   d.remove();
   const m = document.createElement('div'); m.className = 'msg bot'; m.innerHTML = html;
   chat.appendChild(m); rolar();
 }
 function eu(t){ const m = document.createElement('div'); m.className = 'msg eu'; m.textContent = t; chat.appendChild(m); rolar(); }
 
-function botoes(lista, classe){
+/* lista: textos dos botões; devolve o índice escolhido */
+function botoes(lista, classe, destaque){
   return new Promise(res => {
-    rodape.innerHTML = `<div class="opcoes ${classe||''}">${lista.map((o,i) => `<button data-i="${i}">${esc(o)}</button>`).join('')}</div>`;
-    const escolher = i => { rodape.innerHTML = ''; eu(lista[i]); res(lista[i]); };
+    rodape.innerHTML = `<div class="opcoes ${classe||''}">${lista.map((o,i) => `<button data-i="${i}"${i === destaque ? ' class="destaque"' : ''}>${esc(o)}</button>`).join('')}</div>`;
+    const escolher = i => { rodape.innerHTML = ''; eu(lista[i]); res(i); };
     rodape.querySelectorAll('button').forEach(b => b.onclick = () => escolher(+b.dataset.i));
     if(AUTO && AUTO.length){ const v = AUTO.shift(); setTimeout(() => escolher(Math.max(0, lista.indexOf(v))), 900); }
   });
 }
 function texto(ph, {tipo='text', longo=false, valida} = {}){
   return new Promise(res => {
-    rodape.innerHTML = `${''}<div class="aviso" id="aviso"></div><div class="entrada">${longo
+    rodape.innerHTML = `<div class="aviso" id="aviso"></div><div class="entrada">${longo
       ? `<textarea id="campo" rows="2" placeholder="${esc(ph)}"></textarea>`
-      : `<input id="campo" type="${tipo}" placeholder="${esc(ph)}" autocomplete="off">`}<button class="enviar" id="env" aria-label="Enviar">➤</button></div>`;
+      : `<input id="campo" type="${tipo}" placeholder="${esc(ph)}" autocomplete="off">`}<button class="enviar" id="env" aria-label="${esc(L.send)}">➤</button></div>`;
     const campo = document.getElementById('campo');
     const enviar = () => {
       const v = campo.value.trim(); if(!v) return;
@@ -156,7 +293,9 @@ async function salvar(d){
   const c = {
     num:null, protocolo:agora.toString(36).slice(-5).toUpperCase(),
     nome:C.nome, contato:C.contato, canal:d.canal, evento:C.evento, assunto:d.assunto,
-    prioridade:d.prioridade || 'normal', status:d.status, mensagem:d.mensagem, responsavel:'', notas:[],
+    prioridade:d.prioridade || 'normal', status:d.status,
+    mensagem:d.mensagem + (LANG !== 'pt' ? `\n\n[Idioma do atendimento: ${LANG}]` : ''),
+    responsavel:'', notas:[],
     criadoEm:agora, atualizadoEm:agora, primeiraRespostaEm:resolvido ? agora : null, resolvidoEm:resolvido ? agora : null,
     satisfacao:d.satisfacao || null
   };
@@ -176,106 +315,118 @@ async function salvar(d){
 
 /* ---------- caminhos ---------- */
 async function resolveu(assunto, caminho){
-  await bot('Isso resolveu sua dúvida?');
-  const r = await botoes(['Sim, resolveu! 🙌','Não, preciso falar com alguém']);
-  if(r.startsWith('Não')) return humano('Tudo bem! Me conta o que ficou faltando, em poucas palavras.', assunto);
-  await bot(`Que bom, ${esc(pn())}! Antes de ir, como foi esse atendimento?`);
+  await bot(esc(L.resolved));
+  const r = await botoes([L.yes, L.no]);
+  if(r === 1) return humano(L.missing, assunto);
+  await bot(esc(L.rate(pn())));
   const caras = ['😞','🙁','😐','🙂','😍'];
-  const n = caras.indexOf(await botoes(caras, 'notas')) + 1;
+  const n = await botoes(caras, 'notas') + 1;
   await salvar({status:'resolvido', canal:'Autoatendimento', assunto, mensagem:'Resolvido no autoatendimento: ' + caminho, satisfacao:{nota:n, comentario:'', em:Date.now()}});
-  await bot('Obrigado! Deus abençoe. 🙏 Se precisar de mais alguma coisa, é só voltar aqui.');
+  await bot(esc(L.thanks));
   fim();
 }
 
 async function humano(pergunta, assunto, prioridade, extra){
-  await bot(pergunta);
-  let msg = await texto('Escreva aqui…', {longo:true});
+  await bot(esc(pergunta));
+  let msg = await texto(L.writeHere, {longo:true});
   if(extra) msg += '\n\n' + extra;
-  const atencaoW = prioridade === 'atencao' || /pag|caiu|confirm|vaga|esgot|urgente/i.test(msg);
+  const atencao = prioridade === 'atencao' || /pag|caiu|confirm|vaga|esgot|urgente|pay|refund/i.test(msg);
   if(!FIREBASE_CONFIG && WHATSAPP_COORD){
     // sem Central ligada: entrega o pedido pronto no WhatsApp da coordenação
-    await salvar({status:'novo', canal:'Link de atendimento', assunto, prioridade: atencaoW ? 'atencao' : 'normal', mensagem:msg});
-    const txt = `Olá, graça e paz! Sou ${C.nome}.\nAssunto: ${assunto}${C.evento && C.evento !== 'Geral / Outro' ? ' — ' + C.evento : ''}\n\n${msg}`;
-    await bot(`Perfeito, ${esc(pn())}! Agora é só tocar no botão abaixo: sua mensagem já vai pronta para o WhatsApp da coordenação. 👇<br><a class="link-btn" href="https://wa.me/${WHATSAPP_COORD}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Enviar no WhatsApp ↗</a>`);
-    await bot('A coordenação te responde por lá assim que possível. 🙏');
+    await salvar({status:'novo', canal:'Link de atendimento', assunto, prioridade: atencao ? 'atencao' : 'normal', mensagem:msg});
+    const txt = `Olá, graça e paz! Sou ${C.nome}.\nAssunto: ${assunto}${C.evento && C.evento !== 'Geral / Outro' ? ' — ' + C.evento : ''}${LANG !== 'pt' ? `\nIdioma: ${LANG}` : ''}\n\n${msg}`;
+    await bot(`${esc(L.zapReady(pn()))}<br><a class="link-btn forte" href="https://wa.me/${WHATSAPP_COORD}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">${esc(L.zapBtn)}</a>`);
+    await bot(esc(L.zapWait));
     fim(); return;
   }
-  await bot('Qual é o seu WhatsApp com DDD? É por lá que a coordenação vai te responder.');
-  C.contato = await texto('(00) 00000-0000', {tipo:'tel', valida: v => v.replace(/\D/g,'').length < 10 ? 'Coloque o número com DDD, por favor.' : ''});
-  const atencao = prioridade === 'atencao' || /pag|caiu|confirm|vaga|esgot|urgente/i.test(msg);
+  await bot(esc(L.askPhone));
+  C.contato = await texto('(00) 00000-0000', {tipo:'tel', valida: v => v.replace(/\D/g,'').length < 10 ? L.phoneErr : ''});
   const prot = await salvar({status:'novo', canal:'Link de atendimento', assunto, prioridade: atencao ? 'atencao' : 'normal', mensagem:msg});
-  await bot(`Pronto, ${esc(pn())}! Seu pedido foi registrado com o protocolo <b>#${esc(prot)}</b>. ✅`);
-  await bot('A coordenação vai te responder pelo WhatsApp assim que possível. Não precisa mandar de novo, tá? 🙏');
+  await bot(L.protocol(esc(pn()), esc(prot)));
+  await bot(esc(L.noRepeat));
   fim();
 }
 
-const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-function periodo(e){
-  const [, m1, d1] = e.ini.split('-').map(Number), [, m2, d2] = e.fim.split('-').map(Number);
-  if(e.ini === e.fim) return `${d1} de ${MESES[m1-1]}`;
-  return m1 === m2 ? `${d1} a ${d2} de ${MESES[m1-1]}` : `${d1} de ${MESES[m1-1]} a ${d2} de ${MESES[m2-1]}`;
+function fim(){
+  rodape.innerHTML = `<div class="fim">${esc(L.ended)} · <a href="#" id="denovo">${esc(L.restart)}</a></div>`;
+  document.getElementById('denovo').onclick = e => { e.preventDefault(); location.hash = ''; location.reload(); };
 }
-function fim(){ rodape.innerHTML = '<div class="fim">Atendimento finalizado · <a href="#" onclick="location.hash=\'\';location.reload();return false">começar de novo</a></div>'; }
+
+/* escolhe um evento pelas siglas; devolve o evento ou null (outro / ver todos) */
+async function escolherEvento(pergunta, extra){
+  await bot(esc(pergunta));
+  const lista = proximos();
+  const i = await botoes([...lista.map(e => e.sigla), extra], 'siglas');
+  return i < lista.length ? lista[i] : null;
+}
+
+async function mostrarEvento(e){
+  C.evento = nomePt(e) + ' 2027';
+  const aviso = AVISOS.find(a => a.nome === nomePt(e) && (!a.ate || a.ate >= hojeISO()));
+  await bot(cartao(e), 900);
+  if(aviso) await bot(esc(aviso.info));
+  await bot(`${esc(L.prog)}<br><a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">${esc(L.openPortal)}</a>`);
+  return resolveu('Datas / Calendário', 'data e local: ' + e.sigla);
+}
 
 async function iniciar(){
-  await bot('Olá, graça e paz! 🙏', 500);
-  await bot('Aqui é a coordenação de Eventos do Ministério Verbo da Vida. Vou te ajudar rapidinho. Como posso te chamar?');
-  C.nome = await texto('Seu nome');
+  await carregar;
+  const atual = EVENTOS.find(e => e.id === P.get('ev') && e.fim >= hojeISO());
 
-  await bot(`Prazer, ${esc(pn())}! Como posso te ajudar?`);
-  const a = await botoes(['Datas dos eventos de 2027','Inscrição e pagamento','Local, horário e programação','Reembolso ou troca de titular','Caravanas','Outro assunto']);
+  await bot(esc(L.hello), 500);
+  await bot(esc(L.intro));
+  C.nome = await texto(L.namePh);
 
-  if(a.startsWith('Datas')){
+  await bot(esc(L.nice(pn())));
+  const ops = [L.optDates, L.optReg, L.optRefund, L.optCaravan, L.optOther];
+  if(atual) ops.unshift(L.about(atual.sigla, atual.masc));
+  let a = await botoes(ops, '', atual ? 0 : -1);
+  if(atual){ if(a === 0) return mostrarEvento(atual); a -= 1; }
+
+  if(a === 0){ // datas e locais
     C.evento = 'Geral / Outro';
-    await bot('Estes são os eventos de 2027:', 500);
-    await bot('<ul class="agenda">' + CALENDARIO_2027.map(e => `<li><b>${esc(e.sigla)}</b> · ${periodo(e)}<span>${esc(e.nome)} — ${esc(e.local || 'local a confirmar')}</span></li>`).join('') + '</ul>', 1200);
-    await bot(`Os detalhes de cada evento ficam no calendário oficial:<br><a class="link-btn" href="${CALENDARIO_URL}" target="_blank" rel="noopener">Abrir calendário 2027 ↗</a>`);
+    if(!EVENTOS.length){
+      await bot(`${esc(L.calDetails)}<br><a class="link-btn forte" href="${CALENDARIO_URL}" target="_blank" rel="noopener">${esc(L.openCal)}</a>`);
+      return resolveu('Datas / Calendário', 'datas de 2027 (link)');
+    }
+    const e = await escolherEvento(L.whichEvent, L.seeAll);
+    if(e) return mostrarEvento(e);
+    await bot(esc(L.allIntro), 500);
+    await bot('<ul class="agenda">' + EVENTOS.map(e => `<li><b>${esc(e.sigla)}</b> · ${esc(periodo(e))}<span>${esc(nomeEv(e))} — ${esc(localEv(e) || L.tbd)}</span></li>`).join('') + '</ul>', 1200);
+    await bot(`${esc(L.calDetails)}<br><a class="link-btn" href="${CALENDARIO_URL}" target="_blank" rel="noopener">${esc(L.openCal)}</a>`);
     return resolveu('Datas / Calendário', 'datas de 2027');
   }
 
-  await bot('Sobre qual evento?');
-  const hoje = new Date().toISOString().slice(0,10);
-  const ativos = EVENTOS.filter(e => !e.ate || e.ate >= hoje);
-  let ev = await botoes([...ativos.map(e => e.nome), 'Um evento de 2027', 'Outro evento']);
-  if(ev === 'Um evento de 2027'){
-    await bot('Qual deles?');
-    const sigla = await botoes(CALENDARIO_2027.map(e => e.sigla));
-    ev = CALENDARIO_2027.find(e => e.sigla === sigla).nome + ' 2027';
-  }
-  C.evento = ev.startsWith('Outro') ? 'Geral / Outro' : ev;
-  const e27 = CALENDARIO_2027.find(e => e.nome + ' 2027' === C.evento);
-  const info = EVENTOS.find(e => e.nome === C.evento) ||
-    (e27 && {info:`${e27.nome} será de ${periodo(e27)} de 2027, ${e27.local ? 'na ' + e27.local : 'com local ainda a confirmar'}.`});
-
-  if(a.startsWith('Local')){
-    if(info) await bot(esc(info.info));
-    await bot(`A programação completa fica no Portal Verbo da Vida:<br><a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">Abrir o Portal ↗</a>`);
-    return resolveu('Local / Horário / Programação', 'local e horário');
-  }
-  if(a.startsWith('Inscrição')){
-    await bot('Sobre a inscrição, o que você precisa?');
-    const b = await botoes(['Valores e lotes','Confirmar meu pagamento','Tem desconto?','Outra dúvida']);
-    if(b === 'Valores e lotes'){
-      await bot(`Os valores e lotes de cada evento estão no Portal Verbo da Vida:<br><a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">Ver valores ↗</a>`);
+  if(a === 1){ // inscrição
+    const e = atual || await escolherEvento(L.regWhich, L.otherEvent);
+    C.evento = e ? nomePt(e) + ' 2027' : 'Geral / Outro';
+    await bot(esc(L.regWhat));
+    const b = await botoes(L.regOpts);
+    if(b === 0){
+      if(e && e.inscricao) await bot(`${esc(L.regLink(e.sigla))}<br><a class="link-btn forte" href="${esc(e.inscricao)}" target="_blank" rel="noopener">${esc(L.regBtn)}</a>`);
+      else if(e && e.inscricao === null) await bot(esc(L.noReg));
+      else await bot(`${esc(L.prices)}<br><a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">${esc(L.seePrices)}</a>`);
       return resolveu('Inscrição / Pagamento', 'valores e lotes');
     }
-    if(b === 'Tem desconto?'){
-      await bot('Nas inscrições não trabalhamos com desconto, tá? Mas os lotes mudam de valor com o tempo, então quanto antes, melhor. 😉');
-      await bot(`<a class="link-btn" href="${PORTAL}" target="_blank" rel="noopener">Ver lotes atuais ↗</a>`);
+    if(b === 2){
+      await bot(esc(L.noDiscount));
+      await bot(`<a class="link-btn" href="${(e && e.inscricao) || PORTAL}" target="_blank" rel="noopener">${esc(L.seeLots)}</a>`);
       return resolveu('Inscrição / Pagamento', 'desconto');
     }
-    if(b.startsWith('Confirmar')) return humano('Certo! Me conta como foi o pagamento (Pix, cartão…), em que dia e em nome de quem está a inscrição.', 'Inscrição / Pagamento', 'atencao');
-    return humano('Me conta sua dúvida sobre a inscrição.', 'Inscrição / Pagamento');
+    if(b === 1) return humano(L.payAsk, 'Inscrição / Pagamento', 'atencao');
+    return humano(L.regAsk, 'Inscrição / Pagamento');
   }
-  if(a.startsWith('Reembolso')){
-    await bot('Sua compra foi feita há até 7 dias?');
-    const r = await botoes(['Sim','Não, faz mais tempo']);
-    if(r === 'Sim') await bot(`Então o reembolso é feito direto pela Tiketo, a plataforma das inscrições. É só chamar o suporte deles:<br><a class="link-btn" href="${TIKETO_ZAP}" target="_blank" rel="noopener">Suporte Tiketo no WhatsApp ↗</a>`);
-    else await bot(`O reembolso pela Tiketo é liberado só até 7 dias após a compra. Se você não vai poder ir, dá para <b>transferir sua inscrição para outra pessoa</b>: a troca de titularidade é feita pelo suporte da Tiketo.<br><a class="link-btn" href="${TIKETO_ZAP}" target="_blank" rel="noopener">Suporte Tiketo no WhatsApp ↗</a>`);
-    return resolveu('Reembolso / Titularidade', r === 'Sim' ? 'reembolso até 7 dias' : 'troca de titularidade');
+
+  if(a === 2){ // reembolso
+    C.evento = atual ? nomePt(atual) + ' 2027' : 'Geral / Outro';
+    await bot(esc(L.refundAsk));
+    const r = await botoes([L.yesOnly, L.noLonger]);
+    await bot(`${r === 0 ? esc(L.refundYes) : L.refundNo}<br><a class="link-btn" href="${TIKETO_ZAP}" target="_blank" rel="noopener">${esc(L.tiketo)}</a>`);
+    return resolveu('Reembolso / Titularidade', r === 0 ? 'reembolso até 7 dias' : 'troca de titularidade');
   }
-  if(a === 'Caravanas') return humano('Me conta sobre sua caravana: igreja, cidade e mais ou menos quantas pessoas.', 'Caravanas');
-  return humano('Me conta em poucas palavras o que você precisa.', 'Outros');
+  C.evento = atual ? nomePt(atual) + ' 2027' : 'Geral / Outro';
+  if(a === 3) return humano(L.caravanAsk, 'Caravanas');
+  return humano(L.otherAsk, 'Outros');
 }
 iniciar();
 </script>

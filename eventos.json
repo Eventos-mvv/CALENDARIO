@@ -1,0 +1,335 @@
+{
+ "atualizado": "2026-11-12",
+ "eventos": [
+  {
+   "id": "rapd",
+   "sigla": "RPD",
+   "nome": {
+    "en": "Annual Meeting of Pastors and Boards",
+    "fr": "Réunion annuelle des pasteurs et des conseils",
+    "de": "Jahrestreffen der Pastoren und Vorstände",
+    "it": "Riunione annuale dei pastori e dei consigli direttivi",
+    "ja": "牧師・役員年次会議",
+    "pt": "Reunião Anual de Pastores e Diretorias",
+    "es": "Reunión Anual de Pastores y Directivas"
+   },
+   "local": {
+    "en": "Verbo da Vida Church (Headquarters), Campina Grande (PB)",
+    "fr": "Église Verbo da Vida (siège), Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida (Hauptsitz), Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida (sede), Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 本部（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Sede, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Sede, Campina Grande (PB)"
+   },
+   "ini": "2027-03-17",
+   "fim": "2027-03-20",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cm-co-norte",
+   "sigla": "CMCO/NORTE",
+   "nome": {
+    "en": "Ministers' Conference – Midwest/North",
+    "fr": "Conférence des ministres Centre-Ouest/Nord",
+    "de": "Konferenz der Geistlichen – Mittelwesten/Norden",
+    "it": "Conferenza dei ministri Centro-Ovest/Nord",
+    "ja": "牧師カンファレンス（中西部・北部）",
+    "pt": "Conferência de Ministros Centro-Oeste/Norte",
+    "es": "Conferencia de Ministros Centro-Oeste/Norte"
+   },
+   "local": {
+    "en": "Verbo da Vida Church, Taguatinga (DF)",
+    "fr": "Église Verbo da Vida, Taguatinga (DF)",
+    "de": "Gemeinde Verbo da Vida, Taguatinga (DF)",
+    "it": "Chiesa Verbo da Vida, Taguatinga (DF)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会（タグアチンガ、DF）",
+    "pt": "Igreja Verbo da Vida em Taguatinga (DF)",
+    "es": "Iglesia Verbo da Vida en Taguatinga (DF)"
+   },
+   "ini": "2027-05-13",
+   "fim": "2027-05-16",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cmeuro",
+   "sigla": "CMEURO",
+   "nome": {
+    "en": "Ministers' Conference – Europe",
+    "fr": "Conférence des ministres Europe",
+    "de": "Konferenz der Geistlichen – Europa",
+    "it": "Conferenza dei ministri Europa",
+    "ja": "牧師カンファレンス（ヨーロッパ）",
+    "pt": "Conferência de Ministros Europa",
+    "es": "Conferencia de Ministros Europa"
+   },
+   "local": {
+    "en": "Verbo da Vida Church, Leiria, Portugal",
+    "fr": "Église Verbo da Vida, Leiria, Portugal",
+    "de": "Gemeinde Verbo da Vida, Leiria, Portugal",
+    "it": "Chiesa Verbo da Vida, Leiria, Portogallo",
+    "ja": "ヴェルボ・ダ・ヴィダ教会（ポルトガル、レイリア）",
+    "pt": "Igreja Verbo da Vida em Leiria, Portugal",
+    "es": "Iglesia Verbo da Vida en Leiria, Portugal"
+   },
+   "ini": "2027-07-01",
+   "fim": "2027-07-03",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cmne",
+   "sigla": "CMNE",
+   "nome": {
+    "en": "Ministers' Conference – Northeast",
+    "fr": "Conférence des ministres Nord-Est",
+    "de": "Konferenz der Geistlichen – Nordosten",
+    "it": "Conferenza dei ministri Nord-Est",
+    "ja": "牧師カンファレンス（北東部）",
+    "pt": "Conferência de Ministros Nordeste",
+    "es": "Conferencia de Ministros Nordeste"
+   },
+   "local": {
+    "en": "Verbo da Vida Church (Headquarters), Campina Grande (PB)",
+    "fr": "Église Verbo da Vida (siège), Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida (Hauptsitz), Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida (sede), Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 本部（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Sede, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Sede, Campina Grande (PB)"
+   },
+   "ini": "2027-07-14",
+   "fim": "2027-07-17",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "jpn",
+   "sigla": "JPN",
+   "nome": {
+    "en": "JPN Global",
+    "fr": "JPN Global",
+    "de": "JPN Global",
+    "it": "JPN Global",
+    "ja": "JPN Global",
+    "pt": "JPN Global",
+    "es": "JPN Global"
+   },
+   "local": {
+    "en": "Verbo da Vida Church (Headquarters), Campina Grande (PB)",
+    "fr": "Église Verbo da Vida (siège), Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida (Hauptsitz), Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida (sede), Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 本部（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Sede, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Sede, Campina Grande (PB)"
+   },
+   "ini": "2027-07-22",
+   "fim": "2027-07-25",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cman",
+   "sigla": "CMAN",
+   "nome": {
+    "en": "Ministers' Conference – North America",
+    "fr": "Conférence des ministres Amérique du Nord",
+    "de": "Konferenz der Geistlichen – Nordamerika",
+    "it": "Conferenza dei ministri America del Nord",
+    "ja": "牧師カンファレンス（北米）",
+    "pt": "Conferência de Ministros América do Norte",
+    "es": "Conferencia de Ministros América del Norte"
+   },
+   "local": {
+    "en": "Verbo da Vida Church, Orlando (FL), United States",
+    "fr": "Église Verbo da Vida, Orlando (FL), États-Unis",
+    "de": "Gemeinde Verbo da Vida, Orlando (FL), USA",
+    "it": "Chiesa Verbo da Vida, Orlando (FL), Stati Uniti",
+    "ja": "ヴェルボ・ダ・ヴィダ教会（アメリカ合衆国フロリダ州オーランド）",
+    "pt": "Igreja Verbo da Vida em Orlando (FL), Estados Unidos",
+    "es": "Iglesia Verbo da Vida en Orlando (FL), Estados Unidos"
+   },
+   "ini": "2027-07-30",
+   "fim": "2027-08-01",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cmse",
+   "sigla": "CMSE",
+   "nome": {
+    "en": "Ministers' Conference – Southeast",
+    "fr": "Conférence des ministres Sud-Est",
+    "de": "Konferenz der Geistlichen – Südosten",
+    "it": "Conferenza dei ministri Sud-Est",
+    "ja": "牧師カンファレンス（南東部）",
+    "pt": "Conferência de Ministros Sudeste",
+    "es": "Conferencia de Ministros Sudeste"
+   },
+   "local": {},
+   "ini": "2027-09-10",
+   "fim": "2027-09-13",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cm-sul",
+   "sigla": "CMSUL",
+   "nome": {
+    "en": "Ministers' Conference – South",
+    "fr": "Conférence des ministres Sud",
+    "de": "Konferenz der Geistlichen – Süden",
+    "it": "Conferenza dei ministri Sud",
+    "ja": "牧師カンファレンス（南部）",
+    "pt": "Conferência de Ministros Sul",
+    "es": "Conferencia de Ministros Sur"
+   },
+   "local": {
+    "en": "Verbo da Vida Church, Caxias do Sul (RS)",
+    "fr": "Église Verbo da Vida, Caxias do Sul (RS)",
+    "de": "Gemeinde Verbo da Vida, Caxias do Sul (RS)",
+    "it": "Chiesa Verbo da Vida, Caxias do Sul (RS)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会（カシアス・ド・スル、RS州）",
+    "pt": "Igreja Verbo da Vida em Caxias do Sul (RS)",
+    "es": "Iglesia Verbo da Vida en Caxias do Sul (RS)"
+   },
+   "ini": "2027-09-16",
+   "fim": "2027-09-18",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "chm",
+   "sigla": "CH",
+   "nome": {
+    "en": "Men's Conference",
+    "fr": "Conférence des hommes",
+    "de": "Männerkonferenz",
+    "it": "Conferenza degli uomini",
+    "ja": "男性カンファレンス",
+    "pt": "Conferência de Homens",
+    "es": "Conferencia de Hombres"
+   },
+   "local": {
+    "en": "Verbo da Vida Church – Estação, Campina Grande (PB)",
+    "fr": "Église Verbo da Vida Estação, Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida Estação, Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida Estação, Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 エスタサォン（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Estação, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Estação, Campina Grande (PB)"
+   },
+   "ini": "2027-10-14",
+   "fim": "2027-10-16",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cmu",
+   "sigla": "CM",
+   "nome": {
+    "en": "Women's Conference",
+    "fr": "Conférence des femmes",
+    "de": "Frauenkonferenz",
+    "it": "Conferenza delle donne",
+    "ja": "女性カンファレンス",
+    "pt": "Conferência de Mulheres",
+    "es": "Conferencia de Mujeres"
+   },
+   "local": {
+    "en": "Verbo da Vida Church (Headquarters), Campina Grande (PB)",
+    "fr": "Église Verbo da Vida (siège), Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida (Hauptsitz), Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida (sede), Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 本部（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Sede, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Sede, Campina Grande (PB)"
+   },
+   "ini": "2027-10-14",
+   "fim": "2027-10-16",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "cura",
+   "sigla": "CURA",
+   "nome": {
+    "en": "Healing Conference",
+    "fr": "Conférence de guérison",
+    "de": "Heilungskonferenz",
+    "it": "Conferenza di guarigione",
+    "ja": "癒やしのカンファレンス",
+    "pt": "Conferência de Cura",
+    "es": "Conferencia de Sanidad"
+   },
+   "local": {
+    "en": "Verbo da Vida Church (Headquarters), Campina Grande (PB)",
+    "fr": "Église Verbo da Vida (siège), Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida (Hauptsitz), Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida (sede), Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 本部（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Sede, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Sede, Campina Grande (PB)"
+   },
+   "ini": "2027-11-05",
+   "fim": "2027-11-07",
+   "masc": false,
+   "inscricao": null
+  },
+  {
+   "id": "cmaf",
+   "sigla": "CMAF",
+   "nome": {
+    "en": "Ministers' Conference – Africa",
+    "fr": "Conférence des ministres Afrique",
+    "de": "Konferenz der Geistlichen – Afrika",
+    "it": "Conferenza dei ministri Africa",
+    "ja": "牧師カンファレンス（アフリカ）",
+    "pt": "Conferência de Ministros África",
+    "es": "Conferencia de Ministros África"
+   },
+   "local": {
+    "en": "Verbo da Vida Church, Luanda, Angola",
+    "fr": "Église Verbo da Vida, Luanda, Angola",
+    "de": "Gemeinde Verbo da Vida, Luanda, Angola",
+    "it": "Chiesa Verbo da Vida, Luanda, Angola",
+    "ja": "ヴェルボ・ダ・ヴィダ教会（アンゴラ、ルアンダ）",
+    "pt": "Igreja Verbo da Vida em Luanda, Angola",
+    "es": "Iglesia Verbo da Vida en Luanda, Angola"
+   },
+   "ini": "2027-11-12",
+   "fim": "2027-11-14",
+   "masc": false,
+   "inscricao": ""
+  },
+  {
+   "id": "formatura",
+   "sigla": "FORMATURA",
+   "nome": {
+    "en": "Rhema Schools Graduation – Headquarters",
+    "fr": "Remise des diplômes des écoles Rhema – Siège",
+    "de": "Abschlussfeier der Rhema-Schulen – Hauptsitz",
+    "it": "Cerimonia di diploma delle Scuole Rhema – Sede",
+    "ja": "レーマ・スクール卒業式（本部）",
+    "pt": "Formatura das Escolas Rhema Sede",
+    "es": "Graduación de las Escuelas Rhema – Sede"
+   },
+   "local": {
+    "en": "Verbo da Vida Church (Headquarters), Campina Grande (PB)",
+    "fr": "Église Verbo da Vida (siège), Campina Grande (PB)",
+    "de": "Gemeinde Verbo da Vida (Hauptsitz), Campina Grande (PB)",
+    "it": "Chiesa Verbo da Vida (sede), Campina Grande (PB)",
+    "ja": "ヴェルボ・ダ・ヴィダ教会 本部（カンピナ・グランデ、PB州）",
+    "pt": "Igreja Verbo da Vida Sede, Campina Grande (PB)",
+    "es": "Iglesia Verbo da Vida Sede, Campina Grande (PB)"
+   },
+   "ini": "2027-12-04",
+   "fim": "2027-12-04",
+   "masc": false,
+   "inscricao": null
+  }
+ ]
+}
