@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Central de Atendimento · Eventos MVV</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!--
+  CENTRAL DE ATENDIMENTO — Eventos MVV
+  Lê os pedidos que o chat "Fale com a coordenação" (atendimento.html) grava no Firestore.
+  Só entra quem fizer login com uma conta Google liberada nas regras do Firestore
+  (e listada em EQUIPE abaixo). Os dados ficam no projeto Firebase "eventos-mvv-atendimento".
+-->
+<style>
+:root{--vinho:#7a1c30;--vinho-esc:#4e0f1e;--vinho-claro:#f7eaed;--bg:#f6f2f2;--txt:#241a1c;--muted:#7d7073;--borda:#e9e0e2;--ok:#1f7a4d;--ok-claro:#e6f4ec;--alerta:#b45309;--alerta-claro:#fdf0e1;--azul:#2f5d8a;--azul-claro:#e8f0f8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 'Libre Franklin',system-ui,sans-serif}
+button,input,select,textarea{font:inherit}
+header{background:linear-gradient(180deg,var(--vinho-esc),var(--vinho));color:#fff}
+.topo{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.topo img{width:34px;height:34px;background:#fff;border-radius:9px;padding:4px}
+.topo b{font-size:17px}.topo small{display:block;opacity:.8;font-size:12px}
+.topo .eu{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px}
+.topo .eu button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:99px;padding:7px 14px;cursor:pointer}
+main{max-width:1240px;margin:0 auto;padding:20px}
+.entrar{max-width:420px;margin:12vh auto;background:#fff;border-radius:18px;padding:32px;text-align:center;box-shadow:0 10px 40px rgba(90,18,32,.08)}
+.entrar h1{margin:6px 0 8px;color:var(--vinho);font-size:24px}
+.entrar p{color:var(--muted);margin:0 0 22px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:99px;padding:11px 18px;background:var(--vinho);color:#fff;font-weight:700;cursor:pointer;text-decoration:none}
+.btn.leve{background:var(--vinho-claro);color:var(--vinho)}
+.btn.ok{background:var(--ok)}
+.btn.zap{background:#1f9d55}
+.btn:disabled{opacity:.5;cursor:default}
+.erro{color:#b42318;font-size:14px;margin-top:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border-radius:14px;padding:14px 16px}
+.kpi span{display:block;color:var(--muted);font-size:13px}
+.kpi b{font-size:28px;color:var(--vinho);line-height:1.2}
+.kpi small{color:var(--muted);font-size:12px}
+.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.filtros{display:flex;gap:6px;flex-wrap:wrap}
+.filtros button{border:1.5px solid var(--borda);background:#fff;border-radius:99px;padding:7px 13px;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--txt)}
+.filtros button.on{background:var(--vinho);border-color:var(--vinho);color:#fff}
+.busca{flex:1;min-width:200px;max-width:340px;border:1.5px solid var(--borda);border-radius:99px;padding:8px 14px;background:#fff}
+.grade{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.grade{grid-template-columns:1fr}}
+.lista{background:#fff;border-radius:14px;overflow:hidden}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;padding:13px 16px;border-top:1px solid var(--borda);cursor:pointer;align-items:center}
+.item:first-child{border-top:0}
+.item:hover{background:#fbf7f8}.item.sel{background:var(--vinho-claro)}
+.item .p{font-weight:700;color:var(--vinho);font-size:13px}
+.item .n{font-weight:600}
+.item .a{grid-column:2/4;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .q{font-size:12px;color:var(--muted);text-align:right}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.st-novo{background:var(--alerta-claro);color:var(--alerta)}
+.st-andamento{background:var(--azul-claro);color:var(--azul)}
+.st-resolvido{background:var(--ok-claro);color:var(--ok)}
+.atencao{background:#fde8e8;color:#b42318;margin-left:6px}
+.vazio{padding:28px;text-align:center;color:var(--muted)}
+.det{background:#fff;border-radius:14px;padding:18px 20px;position:sticky;top:16px}
+.det h2{margin:0 0 2px;font-size:20px}
+.det .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
+.det dl{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;margin:0 0 14px;font-size:14px}
+.det dt{color:var(--muted)}.det dd{margin:0}
+.msg{background:var(--bg);border-radius:12px;padding:12px 14px;white-space:pre-wrap;margin-bottom:14px}
+.acoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.campo{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.campo label{width:110px;color:var(--muted);font-size:13px}
+.campo select,.campo input{flex:1;border:1.5px solid var(--borda);border-radius:10px;padding:8px 10px;background:#fff}
+.notas{list-style:none;margin:0 0 10px;padding:0;font-size:13.5px}
+.notas li{border-left:3px solid var(--vinho-claro);padding:4px 10px;margin-bottom:6px}
+.notas small{color:var(--muted)}
+.nova-nota{display:flex;gap:8px}
+.nova-nota textarea{flex:1;border:1.5px solid var(--borda);border-radius:10px;padding:8px 10px;resize:vertical;min-height:40px}
+.apagar{background:none;border:0;color:#b42318;cursor:pointer;font-size:13px;padding:0;margin-top:10px}
+.carinhas{font-size:22px}
+.oculto{display:none!important}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--vinho);outline-offset:2px}
+</style>
+</head>
+<body>
+<header><div class="topo">
+  <img src="favicon.svg" alt="">
+  <div><b>Central de Atendimento</b><small>Coordenação de Eventos · Ministério Verbo da Vida</small></div>
+  <div class="eu oculto" id="eu"><span id="quem"></span><button id="sair">Sair</button></div>
+</div></header>
+
+<main>
+  <section class="entrar" id="telaEntrar">
+    <img src="favicon.svg" alt="" width="56" height="56">
+    <h1>Central de Atendimento</h1>
+    <p>Entre com a conta Google da coordenação para ver os pedidos que chegam pelo chat do calendário.</p>
+    <button class="btn" id="entrar">Entrar com Google</button>
+    <div class="erro" id="erroEntrar"></div>
+  </section>
+
+  <section class="oculto" id="telaCentral">
+    <div class="kpis" id="kpis"></div>
+    <div class="barra">
+      <div class="filtros" id="filtros"></div>
+      <input class="busca" id="busca" type="search" placeholder="Buscar por nome, protocolo, evento…">
+    </div>
+    <div class="grade">
+      <div class="lista" id="lista"></div>
+      <aside class="det" id="det"><div class="vazio">Escolha um pedido na lista para ver os detalhes.</div></aside>
+    </div>
+  </section>
+</main>
+
+<script>
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBgcNwoy086jlADtKVsdaTUXBJGzntZKfs",
+  authDomain: "eventos-mvv-atendimento.firebaseapp.com",
+  projectId: "eventos-mvv-atendimento",
+  storageBucket: "eventos-mvv-atendimento.firebasestorage.app",
+  messagingSenderId: "184710879550",
+  appId: "1:184710879550:web:c25a0e6ceec416698c346f"
+};
+/* contas que podem entrar (precisam estar também nas regras do Firestore) */
+const EQUIPE = ['eventos@verbodavida.com'];
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth(), db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ST = {novo:'Novo', andamento:'Em andamento', resolvido:'Resolvido'};
+const quando = ms => ms ? new Date(ms).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}) : '—';
+const dur = ms => { if(ms == null) return '—'; const m = Math.round(ms/60000); return m < 60 ? m + ' min' : m < 1440 ? (m/60).toFixed(1).replace('.', ',') + ' h' : (m/1440).toFixed(1).replace('.', ',') + ' dias'; };
+let PEDIDOS = [], filtro = 'abertos', selId = null, parar = null;
+
+/* ---------- login ---------- */
+$('entrar').onclick = async () => {
+  $('erroEntrar').textContent = '';
+  try { await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+  catch(e){ $('erroEntrar').textContent = e.code === 'auth/unauthorized-domain'
+    ? 'Este endereço ainda não está liberado no Firebase (Authentication → Configurações → Domínios autorizados).'
+    : 'Não foi possível entrar: ' + (e.message || e.code); }
+};
+$('sair').onclick = () => auth.signOut();
+auth.onAuthStateChanged(u => {
+  if(parar){ parar(); parar = null; }
+  const ok = u && EQUIPE.includes((u.email || '').toLowerCase());
+  $('telaEntrar').classList.toggle('oculto', !!ok);
+  $('telaCentral').classList.toggle('oculto', !ok);
+  $('eu').classList.toggle('oculto', !u);
+  $('quem').textContent = u ? u.email : '';
+  if(u && !ok){ $('erroEntrar').textContent = `A conta ${u.email} não tem acesso à Central.`; auth.signOut(); return; }
+  if(ok) ouvir();
+});
+
+/* ---------- dados ao vivo ---------- */
+function ouvir(){
+  parar = db.collection('chamados').orderBy('criadoEm', 'desc').limit(500).onSnapshot(snap => {
+    PEDIDOS = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    desenhar();
+  }, e => { $('lista').innerHTML = `<div class="vazio">Erro ao ler os pedidos: ${esc(e.message)}</div>`; });
+}
+
+function desenhar(){
+  const hoje = Date.now(), d30 = hoje - 30 * 864e5;
+  const ult = PEDIDOS.filter(p => p.criadoEm >= d30);
+  const abertos = PEDIDOS.filter(p => p.status !== 'resolvido');
+  const auto = ult.filter(p => p.canal === 'Autoatendimento');
+  const notas = ult.map(p => p.satisfacao && p.satisfacao.nota).filter(Boolean);
+  const media = notas.length ? notas.reduce((a,b) => a+b, 0) / notas.length : null;
+  const tempos = ult.filter(p => p.primeiraRespostaEm && p.canal !== 'Autoatendimento').map(p => p.primeiraRespostaEm - p.criadoEm);
+  const tMed = tempos.length ? tempos.reduce((a,b) => a+b, 0) / tempos.length : null;
+  $('kpis').innerHTML = `
+    <div class="kpi"><span>Abertos agora</span><b>${abertos.length}</b><small>${abertos.filter(p => p.prioridade === 'atencao').length} com atenção</small></div>
+    <div class="kpi"><span>Atendimentos (30 dias)</span><b>${ult.length}</b><small>pelo chat do calendário</small></div>
+    <div class="kpi"><span>Resolvidos pelo chat</span><b>${ult.length ? Math.round(auto.length / ult.length * 100) : 0}%</b><small>${auto.length} sem precisar da equipe</small></div>
+    <div class="kpi"><span>Satisfação (30 dias)</span><b>${media ? media.toFixed(1).replace('.', ',') : '—'}</b><small>${notas.length} avaliações, nota de 1 a 5</small></div>
+    <div class="kpi"><span>Tempo até responder</span><b>${dur(tMed)}</b><small>média dos pedidos à equipe</small></div>`;
+
+  const F = {abertos:'Abertos', novo:'Novos', andamento:'Em andamento', resolvido:'Resolvidos', todos:'Todos'};
+  $('filtros').innerHTML = Object.entries(F).map(([k,v]) => `<button data-f="${k}" class="${k === filtro ? 'on' : ''}">${v}</button>`).join('');
+  $('filtros').querySelectorAll('button').forEach(b => b.onclick = () => { filtro = b.dataset.f; desenhar(); });
+
+  const q = $('busca').value.trim().toLowerCase();
+  const vis = PEDIDOS.filter(p => filtro === 'todos' ? true : filtro === 'abertos' ? p.status !== 'resolvido' : p.status === filtro)
+    .filter(p => !q || [p.nome, p.protocolo, p.evento, p.assunto, p.mensagem].join(' ').toLowerCase().includes(q));
+  $('lista').innerHTML = vis.length ? vis.map(p => `
+    <div class="item${p.id === selId ? ' sel' : ''}" data-id="${p.id}">
+      <span class="p">#${esc(p.protocolo)}</span>
+      <span class="n">${esc(p.nome || 'Sem nome')} <span class="tag st-${esc(p.status)}">${ST[p.status] || esc(p.status)}</span>${p.prioridade === 'atencao' && p.status !== 'resolvido' ? '<span class="tag atencao">Atenção</span>' : ''}</span>
+      <span class="q">${quando(p.criadoEm)}</span>
+      <span class="a">${esc(p.assunto)}${p.evento && p.evento !== 'Geral / Outro' ? ' · ' + esc(p.evento) : ''} — ${esc((p.mensagem || '').split('\n')[0])}</span>
+    </div>`).join('') : '<div class="vazio">Nenhum pedido aqui. 🙌</div>';
+  $('lista').querySelectorAll('.item').forEach(el => el.onclick = () => { selId = el.dataset.id; desenhar(); });
+  detalhe();
+}
+$('busca').oninput = desenhar;
+
+/* ---------- detalhe e ações ---------- */
+function detalhe(){
+  const p = PEDIDOS.find(x => x.id === selId);
+  if(!p){ $('det').innerHTML = '<div class="vazio">Escolha um pedido na lista para ver os detalhes.</div>'; return; }
+  const caras = ['😞','🙁','😐','🙂','😍'];
+  const zap = (p.contato || '').replace(/\D/g, '');
+  $('det').innerHTML = `
+    <h2>${esc(p.nome || 'Sem nome')}</h2>
+    <div class="meta">Protocolo #${esc(p.protocolo)} · ${quando(p.criadoEm)}</div>
+    <dl>
+      <dt>Assunto</dt><dd>${esc(p.assunto)}</dd>
+      <dt>Evento</dt><dd>${esc(p.evento || '—')}</dd>
+      <dt>Canal</dt><dd>${esc(p.canal)}</dd>
+      ${p.contato ? `<dt>WhatsApp</dt><dd>${esc(p.contato)}</dd>` : ''}
+      ${p.satisfacao ? `<dt>Avaliação</dt><dd class="carinhas">${caras[(p.satisfacao.nota || 3) - 1]}</dd>` : ''}
+      ${p.resolvidoEm ? `<dt>Resolvido</dt><dd>${quando(p.resolvidoEm)}</dd>` : ''}
+    </dl>
+    <div class="msg">${esc(p.mensagem)}</div>
+    <div class="acoes">
+      ${p.status !== 'andamento' && p.status !== 'resolvido' ? '<button class="btn leve" data-st="andamento">Assumir</button>' : ''}
+      ${p.status !== 'resolvido' ? '<button class="btn ok" data-st="resolvido">Marcar como resolvido</button>' : '<button class="btn leve" data-st="andamento">Reabrir</button>'}
+      ${zap ? `<a class="btn zap" href="https://wa.me/${zap.length <= 11 ? '55' + zap : zap}" target="_blank" rel="noopener">Abrir WhatsApp</a>` : ''}
+    </div>
+    <div class="campo"><label for="resp">Responsável</label><input id="resp" value="${esc(p.responsavel)}" placeholder="Quem está cuidando"></div>
+    <div class="campo"><label for="prio">Prioridade</label><select id="prio"><option value="normal">Normal</option><option value="atencao"${p.prioridade === 'atencao' ? ' selected' : ''}>Atenção</option></select></div>
+    <h3 style="font-size:14px;margin:14px 0 6px">Anotações da equipe</h3>
+    <ul class="notas">${(p.notas || []).map(n => `<li>${esc(n.texto)}<br><small>${esc(n.por || '')} · ${quando(n.em)}</small></li>`).join('') || '<li><small>Nenhuma anotação ainda.</small></li>'}</ul>
+    <div class="nova-nota"><textarea id="nota" placeholder="Ex.: respondi pelo WhatsApp, aguardando comprovante"></textarea><button class="btn" id="addNota">Anotar</button></div>
+    <button class="apagar" id="apagar">Apagar pedido</button>`;
+  const ref = db.collection('chamados').doc(p.id);
+  const salvar = (d) => ref.update({...d, atualizadoEm: Date.now()}).catch(e => alert('Não foi possível salvar: ' + e.message));
+  $('det').querySelectorAll('[data-st]').forEach(b => b.onclick = () => {
+    const st = b.dataset.st, agora = Date.now(), d = {status: st};
+    if(!p.primeiraRespostaEm) d.primeiraRespostaEm = agora;
+    d.resolvidoEm = st === 'resolvido' ? agora : null;
+    if(st === 'andamento' && !p.responsavel) d.responsavel = (auth.currentUser.displayName || auth.currentUser.email).split(' ')[0];
+    salvar(d);
+  });
+  $('resp').onchange = e => salvar({responsavel: e.target.value.trim()});
+  $('prio').onchange = e => salvar({prioridade: e.target.value});
+  $('addNota').onclick = () => {
+    const t = $('nota').value.trim(); if(!t) return;
+    salvar({notas: [...(p.notas || []), {texto: t, por: auth.currentUser.displayName || auth.currentUser.email, em: Date.now()}]});
+  };
+  $('apagar').onclick = () => { if(confirm('Apagar este pedido de vez? Não dá para desfazer.')){ ref.delete(); selId = null; } };
+}
+</script>
+</body>
+</html>
